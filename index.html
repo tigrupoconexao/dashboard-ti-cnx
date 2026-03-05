@@ -50,6 +50,11 @@
             box-shadow: 0 10px 30px rgba(13, 27, 42, 0.4); 
         }
 
+        .logo-container img {
+            max-height: 60px;
+            filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.2));
+        }
+
         .kpi-title { font-size: 0.7rem; font-weight: 800; color: #415A77; text-transform: uppercase; letter-spacing: 0.1em; }
         .kpi-value { font-size: 2.6rem; font-weight: 900; line-height: 1; color: #0D1B2A; }
 
@@ -66,11 +71,16 @@
 </head>
 <body class="pb-20">
 
-    <header class="p-10 mb-12">
+    <header class="p-6 mb-12">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="text-center md:text-left">
-                <h1 class="text-4xl font-black tracking-tight uppercase leading-none mb-2">Helpdesk Analytics</h1>
-                <p class="text-[#778DA9] text-sm font-bold tracking-widest">GRUPO CONEXÃO | INFRAESTRUTURA DE TI</p>
+            <div class="flex items-center gap-6 text-center md:text-left">
+                <div class="logo-container bg-white p-2 rounded-xl shadow-lg">
+                    <img src="logo.png" alt="Grupo Conexão" onerror="this.src='https://via.placeholder.com/150x50?text=LOGOMARCA'">
+                </div>
+                <div>
+                    <h1 class="text-3xl font-black tracking-tight uppercase leading-none mb-1">Helpdesk Analytics</h1>
+                    <p class="text-[#778DA9] text-xs font-bold tracking-widest uppercase">TI Grupo Conexão</p>
+                </div>
             </div>
             <div id="last-update" class="text-xs font-mono bg-[#E0E1DD] text-[#0D1B2A] px-6 py-2 rounded-lg border-b-4 border-[#778DA9] shadow-inner font-bold"></div>
         </div>
@@ -95,7 +105,7 @@
                 <select id="f-req" class="filter-select" onchange="apply()"><option value="All">Todas</option></select>
             </div>
             <div class="flex items-end">
-                <button onclick="reset()" class="w-full btn-3d font-black py-3 rounded-xl text-xs uppercase tracking-widest shadow-lg">Resetar Dados</button>
+                <button onclick="reset()" class="w-full btn-3d font-black py-3 rounded-xl text-xs uppercase tracking-widest shadow-lg">Resetar Filtros</button>
             </div>
         </div>
 
@@ -249,7 +259,6 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Abertos
             const evOrder = ["01/26", "02/26", "03/26"];
             let evCount = {"01/26":0, "02/26":0, "03/26":0};
             data.forEach(d => {
