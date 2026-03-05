@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard TI - Grupo Conexão</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); padding: 1.5rem; }
+        .filter-select { border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem; width: 100%; background: white; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="min-h-screen flex flex-col">
+        <header class="bg-blue-900 text-white p-6 shadow-lg">
+            <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+                <h1 class="text-2xl font-bold tracking-tight">Helpdesk TI | Grupo Conexão</h1>
+                <div class="flex items-center gap-2">
+                    <span id="last-update" class="text-sm opacity-80 italic">Carregando dados...</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-4 md:p-8 flex-grow">
+            <div class="card mb-8 grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Setor</label>
+                    <select id="filter-sector" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Status</label>
+                    <select id="filter-status" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Tipo Item</label>
+                    <select id="filter-type" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Request Type</label>
+                    <select id="filter-reqtype" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="resetFilters()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition">Limpar Filtros</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="card text-center">
+                    <p class="text-gray-500 text-sm font-semibold uppercase">Total de Chamados</p>
+                    <h2 id="kpi-total" class="text-4xl font-bold text-blue-600">0</h2>
+                </div>
+                <div class="card text-center">
+                    <p class="text-gray-500 text-sm font-semibold uppercase">Resolvidos / Concluídos</p>
+                    <h2 id="kpi-resolved" class="text-4xl font-bold text-green-600">0</h2>
+                </div>
+                <div class="card text-center">
+                    <p class="text-gray-500 text-sm font-semibold uppercase">Taxa de Resolução</p>
+                    <h2 id="kpi-rate" class="text-4xl font-bold text-purple-600">0%</h2>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card">
+                    <h3 class="font-bold mb-4 text-gray-700">Criados vs Resolvidos no Período</h3>
+                    <div id="chart-timeline"></div>
+                </div>
+                <div class="card">
+                    <h3 class="font-bold mb-4 text-gray-700">Distribuição por Prioridade</h3>
+                    <div id="chart-priority"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card">
+                    <h3 class="font-bold mb-4 text-gray-700">Top 10 Setores Solicitantes</h3>
+                    <div id="chart-sectors"></div>
+                </div>
+                <div class="card">
+                    <h3 class="font-bold mb-4 text-gray-700">Top 10 Request Types</h3>
+                    <div id="chart-reqtypes"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8 mb-8">
+                <div class="card overflow-x-auto">
+                    <h3 class="font-bold mb-4 text-gray-700">Heatmap Semanal (Dia da Semana vs Hora de Abertura)</h3>
+                    <div id="chart-heatmap-week" style="min-width: 600px;"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8 mb-8">
+                <div class="card overflow-x-auto">
+                    <h3 class="font-bold mb-4 text-gray-700">Cruzamento: Request Type vs Setor Solicitante</h3>
+                    <div id="chart-matrix" style="min-width: 800px;"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let rawData = [];
+        let charts = {};
+
+        // Mapeamento de colunas baseado na sua descrição
+        const COL = {
+            ITEM_TYPE: 'Tipo de item',
+            SUMMARY: 'Resumo',
+            STATUS: 'Status',
+            PRIORITY: 'Prioridade',
+            CREATED: 'Criado',
+            UPDATED: 'Atualizado(a)',
+            REQ_TYPE: 'Campo personalizado (Request Type)',
+            SECTOR: 'Campo personalizado (Setor Solicitante)'
+        };
+
+        // Carregar dados
+        window.onload = function() {
+            Papa.parse("data.csv", {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    rawData = results.data;
+                    initDashboard();
+                },
+                error: function() {
+                    alert("Erro ao carregar data.csv. Verifique se o arquivo existe no repositório.");
+                }
+            });
+        };
+
+        function initDashboard() {
+            populateFilters();
+            applyFilters();
+            document.getElementById('last-update').innerText = "Última atualização: " + moment().format('DD/MM/YYYY HH:mm');
+        }
+
+        function populateFilters() {
+            const sectors = [...new Set(rawData.map(d => d[COL.SECTOR]))].sort();
+            const statuses = [...new Set(rawData.map(d => d[COL.STATUS]))].sort();
+            const types = [...new Set(rawData.map(d => d[COL.ITEM_TYPE]))].sort();
+            const reqTypes = [...new Set(rawData.map(d => d[COL.REQ_TYPE]))].sort();
+
+            fillSelect('filter-sector', sectors);
+            fillSelect('filter-status', statuses);
+            fillSelect('filter-type', types);
+            fillSelect('filter-reqtype', reqTypes);
+        }
+
+        function fillSelect(id, list) {
+            const select = document.getElementById(id);
+            list.forEach(item => {
+                if(item) {
+                    let opt = document.createElement('option');
+                    opt.value = item;
+                    opt.innerHTML = item;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        function applyFilters() {
+            const fSector = document.getElementById('filter-sector').value;
+            const fStatus = document.getElementById('filter-status').value;
+            const fType = document.getElementById('filter-type').value;
+            const fReqType = document.getElementById('filter-reqtype').value;
+
+            const filtered = rawData.filter(d => {
+                return (fSector === 'All' || d[COL.SECTOR] === fSector) &&
+                       (fStatus === 'All' || d[COL.STATUS] === fStatus) &&
+                       (fType === 'All' || d[COL.ITEM_TYPE] === fType) &&
+                       (fReqType === 'All' || d[COL.REQ_TYPE] === fReqType);
+            });
+
+            renderDashboard(filtered);
+        }
+
+        function resetFilters() {
+            document.querySelectorAll('.filter-select').forEach(s => s.value = 'All');
+            applyFilters();
+        }
+
+        function renderDashboard(data) {
+            // KPIs
+            const total = data.length;
+            const resolved = data.filter(d => ['Concluído', 'Resolvido'].includes(d[COL.STATUS])).length;
+            document.getElementById('kpi-total').innerText = total;
+            document.getElementById('kpi-resolved').innerText = resolved;
+            document.getElementById('kpi-rate').innerText = total > 0 ? ((resolved/total)*100).toFixed(1) + "%" : "0%";
+
+            // 1. Linha: Criados vs Resolvidos
+            renderTimelineChart(data);
+
+            // 2. Barras: Prioridade
+            renderBarChart('chart-priority', countOccurrences(data, COL.PRIORITY), '#3b82f6');
+
+            // 3. Top 10 Setores
+            renderBarChart('chart-sectors', countOccurrences(data, COL.SECTOR, 10), '#10b981', true);
+
+            // 4. Top 10 Request Types
+            renderBarChart('chart-reqtypes', countOccurrences(data, COL.REQ_TYPE, 10), '#8b5cf6', true);
+
+            // 5. Heatmap Semanal (Dia da semana vs Hora)
+            renderWeeklyHeatmap(data);
+
+            // 6. Matriz Request Type vs Setor
+            renderMatrixChart(data);
+        }
+
+        // --- Funções Auxiliares de Gráficos ---
+
+        function countOccurrences(data, field, limit = null) {
+            let counts = {};
+            data.forEach(d => { counts[d[field]] = (counts[d[field]] || 0) + 1; });
+            let entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+            if(limit) entries = entries.slice(0, limit);
+            return { labels: entries.map(e => e[0]), values: entries.map(e => e[1]) };
+        }
+
+        function renderBarChart(id, dataObj, color, horizontal = false) {
+            const options = {
+                series: [{ name: 'Chamados', data: dataObj.values }],
+                chart: { type: 'bar', height: 350, toolbar: {show: false} },
+                plotOptions: { bar: { horizontal: horizontal, borderRadius: 4 } },
+                colors: [color],
+                xaxis: { categories: dataObj.labels },
+                dataLabels: { enabled: true }
+            };
+            updateChart(id, options);
+        }
+
+        function renderTimelineChart(data) {
+            const createdMap = {};
+            const resolvedMap = {};
+            
+            data.forEach(d => {
+                const dayC = moment(d[COL.CREATED]).format('YYYY-MM-DD');
+                createdMap[dayC] = (createdMap[dayC] || 0) + 1;
+                
+                if(['Concluído', 'Resolvido'].includes(d[COL.STATUS])) {
+                    const dayR = moment(d[COL.UPDATED]).format('YYYY-MM-DD');
+                    resolvedMap[dayR] = (resolvedMap[dayR] || 0) + 1;
+                }
+            });
+
+            const allDates = [...new Set([...Object.keys(createdMap), ...Object.keys(resolvedMap)])].sort();
+            
+            const options = {
+                series: [
+                    { name: 'Criados', data: allDates.map(date => createdMap[date] || 0) },
+                    { name: 'Resolvidos', data: allDates.map(date => resolvedMap[date] || 0) }
+                ],
+                chart: { type: 'line', height: 350, zoom: { enabled: false } },
+                stroke: { curve: 'smooth', width: 3 },
+                colors: ['#3b82f6', '#10b981'],
+                xaxis: { categories: allDates, type: 'datetime' },
+                legend: { position: 'top' }
+            };
+            updateChart('chart-timeline', options);
+        }
+
+        function renderWeeklyHeatmap(data) {
+            const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+            const matrix = days.map(day => ({ name: day, data: Array(24).fill(0).map((_, i) => ({ x: i + "h", y: 0 })) }));
+
+            data.forEach(d => {
+                const date = moment(d[COL.CREATED]);
+                if(date.isValid()) {
+                    const dayIdx = (date.isoWeekday() - 1);
+                    const hour = date.hour();
+                    matrix[dayIdx].data[hour].y++;
+                }
+            });
+
+            const options = {
+                series: matrix.reverse(),
+                chart: { type: 'heatmap', height: 350, toolbar: {show:false} },
+                dataLabels: { enabled: false },
+                colors: ["#3b82f6"],
+                title: { text: 'Volume por Horário de Abertura' }
+            };
+            updateChart('chart-heatmap-week', options);
+        }
+
+        function renderMatrixChart(data) {
+            const topSectors = countOccurrences(data, COL.SECTOR, 8).labels;
+            const topReqs = countOccurrences(data, COL.REQ_TYPE, 10).labels;
+
+            const series = topReqs.map(req => {
+                return {
+                    name: req,
+                    data: topSectors.map(sec => {
+                        const count = data.filter(d => d[COL.REQ_TYPE] === req && d[COL.SECTOR] === sec).length;
+                        return { x: sec, y: count };
+                    })
+                };
+            });
+
+            const options = {
+                series: series,
+                chart: { type: 'heatmap', height: 450 },
+                dataLabels: { enabled: true },
+                colors: ["#8b5cf6"],
+                xaxis: { labels: { rotate: -45, trim: true } }
+            };
+            updateChart('chart-matrix', options);
+        }
+
+        function updateChart(id, options) {
+            if (charts[id]) {
+                charts[id].updateOptions(options);
+            } else {
+                charts[id] = new ApexCharts(document.querySelector("#" + id), options);
+                charts[id].render();
+            }
+        }
+    </script>
+</body>
+</html>
