@@ -197,7 +197,6 @@
             const finishedCount = data.filter(d => isFinished(d[COL.STATUS])).length;
             const canceledCount = data.filter(d => (d[COL.STATUS] || "").toLowerCase() === "cancelado").length;
             
-            // Taxa: (Res + Conc) / (Total - Cancelado)
             const atendiveis = total - canceledCount;
             const rate = atendiveis > 0 ? ((finishedCount / atendiveis) * 100).toFixed(1) : 0;
 
@@ -241,30 +240,28 @@
 
         function renderTimelineChart(data) {
             const createdMap = {};
-            const finishedMap = {};
+            const finishedInMonthMap = {};
             
+            // Usamos apenas o mês de criação como base do Eixo X
             data.forEach(d => {
-                const dateC = moment(d[COL.CREATED]);
+                const dateC = moment(d[COL.CREATED], 'YYYY-MM-DD');
                 if(dateC.isValid()) {
                     const monthKey = dateC.format('YYYY-MM'); 
                     createdMap[monthKey] = (createdMap[monthKey] || 0) + 1;
-                }
-                
-                if(isFinished(d[COL.STATUS])) {
-                    const dateF = moment(d[COL.UPDATED]);
-                    if(dateF.isValid()) {
-                        const monthKeyF = dateF.format('YYYY-MM');
-                        finishedMap[monthKeyF] = (finishedMap[monthKeyF] || 0) + 1;
+                    
+                    // Contamos quantos dos abertos naquele mês já foram resolvidos
+                    if(isFinished(d[COL.STATUS])) {
+                        finishedInMonthMap[monthKey] = (finishedInMonthMap[monthKey] || 0) + 1;
                     }
                 }
             });
 
-            const allMonths = [...new Set([...Object.keys(createdMap), ...Object.keys(finishedMap)])].sort();
+            const allMonths = Object.keys(createdMap).sort();
             
             const options = {
                 series: [
-                    { name: 'Abertos', data: allMonths.map(m => createdMap[m] || 0) },
-                    { name: 'Finalizados', data: allMonths.map(m => finishedMap[m] || 0) }
+                    { name: 'Chamados Criados', data: allMonths.map(m => createdMap[m] || 0) },
+                    { name: 'Chamados Finalizados', data: allMonths.map(m => finishedInMonthMap[m] || 0) }
                 ],
                 chart: { type: 'line', height: 350, toolbar: { show: true } },
                 colors: ['#3b82f6', '#10b981'],
@@ -274,7 +271,8 @@
                     type: 'category' 
                 },
                 markers: { size: 5 },
-                dataLabels: { enabled: true }
+                dataLabels: { enabled: true },
+                tooltip: { shared: true }
             };
             updateChart('chart-timeline', options);
         }
@@ -286,7 +284,7 @@
                 data: Array(24).fill(0).map((_, h) => ({ x: h+'h', y: 0 }))
             }));
             data.forEach(d => {
-                const date = moment(d[COL.CREATED]);
+                const date = moment(d[COL.CREATED], 'YYYY-MM-DD HH:mm:ss');
                 if(date.isValid()) {
                     const dIdx = (date.isoWeekday() - 1);
                     const hour = date.hour();
@@ -313,7 +311,7 @@
                 data: Array(31).fill(0).map((_, i) => ({ x: (i+1).toString(), y: 0 }))
             }));
             data.forEach(d => {
-                const date = moment(d[COL.CREATED]);
+                const date = moment(d[COL.CREATED], 'YYYY-MM-DD');
                 if(date.isValid()) {
                     const mIdx = date.month();
                     const dIdx = date.date() - 1;
