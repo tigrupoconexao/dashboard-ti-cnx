@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Aplicação da paleta de cores */
         body { font-family: 'Inter', sans-serif; background-color: #D9D9D9; color: #353535; }
         .card { background: #FFFFFF; border-radius: 12px; padding: 1.5rem; border: 1px solid #c0c0c0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .filter-select { background: #FFFFFF; border: 1px solid #353535; border-radius: 8px; padding: 0.5rem; width: 100%; color: #353535; font-size: 0.875rem; }
@@ -119,6 +118,7 @@
             STATUS: 'Status',
             PRIO: 'Prioridade',
             CREATED: 'Criado',
+            UPDATED: 'Atualizado(a)',
             TYPE: 'Tipo de item',
             REQ: 'Campo personalizado (Request Type)',
             SECTOR: 'Campo personalizado (Setor Solicitante)'
@@ -192,11 +192,15 @@
             apply();
         }
 
+        function isF(s) {
+            const status = (s || "").toLowerCase();
+            return status === "resolvido" || status === "concluído" || status === "concluido";
+        }
+
         function render(data) {
-            const isF = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
             const total = data.length;
             const fin = data.filter(d => isF(d[COL.STATUS])).length;
-            const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
+            const can = data.filter(d => (d[COL.STATUS] || "").toLowerCase() === "cancelado").length;
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
             document.getElementById('kpi-total').innerText = total;
@@ -204,20 +208,32 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução
+            // Evolução Mensal - Barras de Abertos vs Concluídos
             const evOrder = ["01/26", "02/26", "03/26"];
             const evNames = {"01/26":"Jan/26", "02/26":"Fev/26", "03/26":"Mar/26"};
-            let ev = {"01/26":0, "02/26":0, "03/26":0};
+            let openedCount = {"01/26":0, "02/26":0, "03/26":0};
+            let finishedCount = {"01/26":0, "02/26":0, "03/26":0};
+            
             data.forEach(d => {
-                let p = parseJiraDate(d[COL.CREATED]);
-                if(p && ev.hasOwnProperty(p.monthKey)) ev[p.monthKey]++;
+                let pOpen = parseJiraDate(d[COL.CREATED]);
+                if(pOpen && openedCount.hasOwnProperty(pOpen.monthKey)) openedCount[pOpen.monthKey]++;
+                
+                if(isF(d[COL.STATUS])) {
+                    let pFinish = parseJiraDate(d[COL.UPDATED]);
+                    if(pFinish && finishedCount.hasOwnProperty(pFinish.monthKey)) finishedCount[pFinish.monthKey]++;
+                }
             });
+
             draw('chart-ev', {
-                series: [{ name: 'Abertos', data: evOrder.map(k => ev[k]) }],
+                series: [
+                    { name: 'Abertos', data: evOrder.map(k => openedCount[k]) },
+                    { name: 'Concluídos', data: evOrder.map(k => finishedCount[k]) }
+                ],
                 chart: { type: 'bar', height: 280, toolbar: {show:true} },
-                colors: ['#284B63'],
+                colors: ['#284B63', '#3C6E71'],
                 xaxis: { categories: evOrder.map(k => evNames[k]) },
-                dataLabels: { enabled: true }
+                dataLabels: { enabled: true },
+                legend: { position: 'top' }
             });
 
             // Outros Gráficos
