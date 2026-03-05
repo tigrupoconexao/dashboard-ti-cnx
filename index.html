@@ -10,24 +10,30 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .card { background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .filter-select { background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0.5rem; width: 100%; color: #1e293b; font-size: 0.875rem; }
-        .kpi-value { font-size: 2.5rem; font-weight: 800; line-height: 1; margin-top: 0.5rem; }
+        /* Aplicação da paleta de cores */
+        body { font-family: 'Inter', sans-serif; background-color: #D9D9D9; color: #353535; }
+        .card { background: #FFFFFF; border-radius: 12px; padding: 1.5rem; border: 1px solid #c0c0c0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .filter-select { background: #FFFFFF; border: 1px solid #353535; border-radius: 8px; padding: 0.5rem; width: 100%; color: #353535; font-size: 0.875rem; }
+        .kpi-value { font-size: 2.2rem; font-weight: 800; line-height: 1; margin-top: 0.5rem; }
+        header { background-color: #284B63; color: #FFFFFF; }
+        .btn-primary { background-color: #3C6E71; color: #FFFFFF; transition: filter 0.2s; }
+        .btn-primary:hover { filter: brightness(1.2); }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="pb-10">
 
-    <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b pb-6">
+    <header class="p-6 mb-8 shadow-md">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl font-black tracking-tighter text-blue-600 uppercase">TI GRUPO CONEXÃO</h1>
-                <p class="text-slate-500 text-sm">Dashboard de Performance Helpdesk</p>
+                <h1 class="text-2xl font-black tracking-tighter uppercase">TI GRUPO CONEXÃO</h1>
+                <p class="text-blue-100 text-sm">Dashboard de Performance Helpdesk</p>
             </div>
-            <div id="last-update" class="text-[10px] font-mono bg-slate-100 px-3 py-1 rounded border border-slate-200 text-slate-600"></div>
-        </header>
+            <div id="last-update" class="text-[10px] font-mono bg-[#353535] px-3 py-1 rounded border border-white text-white"></div>
+        </div>
+    </header>
 
-        <div class="card mb-8 grid grid-cols-1 md:grid-cols-5 gap-4 bg-slate-50 border-blue-100">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="card mb-8 grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Setor</label>
                 <select id="f-sector" class="filter-select" onchange="apply()"><option value="All">Todos os Setores</option></select>
@@ -45,22 +51,26 @@
                 <select id="f-req" class="filter-select" onchange="apply()"><option value="All">Todas</option></select>
             </div>
             <div class="flex items-end">
-                <button onclick="reset()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition text-xs uppercase tracking-wider shadow-sm">Limpar Filtros</button>
+                <button onclick="reset()" class="w-full btn-primary font-bold py-2 rounded-lg text-xs uppercase tracking-wider shadow-sm">Limpar Filtros</button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="card border-t-4 border-blue-600">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="card border-t-4 border-[#284B63]">
                 <p class="text-xs font-bold text-slate-500 uppercase">Total de Chamados</p>
-                <div id="kpi-total" class="kpi-value text-slate-900">0</div>
+                <div id="kpi-total" class="kpi-value text-[#284B63]">0</div>
             </div>
-            <div class="card border-t-4 border-emerald-600">
-                <p class="text-xs font-bold text-slate-500 uppercase">Finalizados (Res/Conc)</p>
-                <div id="kpi-resolved" class="kpi-value text-emerald-600">0</div>
+            <div class="card border-t-4 border-[#3C6E71]">
+                <p class="text-xs font-bold text-slate-500 uppercase">Finalizados</p>
+                <div id="kpi-resolved" class="kpi-value text-[#3C6E71]">0</div>
             </div>
-            <div class="card border-t-4 border-orange-500">
+            <div class="card border-t-4 border-[#353535]">
+                <p class="text-xs font-bold text-slate-500 uppercase">Cancelados</p>
+                <div id="kpi-canceled" class="kpi-value text-[#353535]">0</div>
+            </div>
+            <div class="card border-t-4 border-[#284B63]">
                 <p class="text-xs font-bold text-slate-500 uppercase">Taxa de Eficiência</p>
-                <div id="kpi-rate" class="kpi-value text-orange-600">0%</div>
+                <div id="kpi-rate" class="kpi-value text-[#284B63]">0%</div>
             </div>
         </div>
 
@@ -114,30 +124,23 @@
             SECTOR: 'Campo personalizado (Setor Solicitante)'
         };
 
-        // Normalização robusta de texto
         function clean(s) { return s ? s.toString().replace(/^\uFEFF/, '').trim() : ""; }
 
-        // Nova função inteligente de parsing de data
         function parseJiraDate(dateStr) {
             if (!dateStr) return null;
             let day, month, year, hour;
             if (dateStr.includes('/')) {
-                // Formato DD/MM/AAAA HH:mm
                 let [dpart, tpart] = dateStr.split(' ');
                 [day, month, year] = dpart.split('/');
                 hour = tpart ? tpart.split(':')[0] : "00";
             } else if (dateStr.includes('-')) {
-                // Formato AAAA-MM-DD HH:mm
                 let [dpart, tpart] = dateStr.split(' ');
                 [year, month, day] = dpart.split('-');
                 hour = tpart ? tpart.split(':')[0] : "00";
             }
             return { 
-                day: parseInt(day), 
-                month: parseInt(month), 
-                year: parseInt(year), 
-                hour: parseInt(hour),
-                monthKey: `${month}/${year.toString().slice(-2)}` 
+                day: parseInt(day), month: parseInt(month), year: parseInt(year), hour: parseInt(hour),
+                monthKey: `${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}` 
             };
         }
 
@@ -165,7 +168,7 @@
             fill('f-status', getU(COL.STATUS));
             fill('f-type', getU(COL.TYPE));
             fill('f-req', getU(COL.REQ));
-            document.getElementById('last-update').innerText = "SINCRONIZADO: " + moment().format('DD/MM/YYYY HH:mm');
+            document.getElementById('last-update').innerText = "ATUALIZADO: " + moment().format('DD/MM/YYYY HH:mm');
             apply();
         }
 
@@ -198,10 +201,11 @@
 
             document.getElementById('kpi-total').innerText = total;
             document.getElementById('kpi-resolved').innerText = fin;
+            document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Mensal (Barras)
-            const evLabels = ["01/26", "02/26", "03/26"];
+            // Evolução
+            const evOrder = ["01/26", "02/26", "03/26"];
             const evNames = {"01/26":"Jan/26", "02/26":"Fev/26", "03/26":"Mar/26"};
             let ev = {"01/26":0, "02/26":0, "03/26":0};
             data.forEach(d => {
@@ -209,24 +213,22 @@
                 if(p && ev.hasOwnProperty(p.monthKey)) ev[p.monthKey]++;
             });
             draw('chart-ev', {
-                series: [{ name: 'Tickets', data: Object.values(ev) }],
+                series: [{ name: 'Abertos', data: evOrder.map(k => ev[k]) }],
                 chart: { type: 'bar', height: 280, toolbar: {show:true} },
-                colors: ['#3b82f6'],
-                xaxis: { categories: Object.keys(ev).map(k => evNames[k]) },
+                colors: ['#284B63'],
+                xaxis: { categories: evOrder.map(k => evNames[k]) },
                 dataLabels: { enabled: true }
             });
 
-            // Setores Top 10
+            // Outros Gráficos
             const sData = count(data, COL.SECTOR, 10);
-            draw('chart-sectors', bar(sData.values, sData.labels, '#10b981', true));
+            draw('chart-sectors', bar(sData.values, sData.labels, '#3C6E71', true));
             
-            // Prioridade
             const pData = count(data, COL.PRIO);
-            draw('chart-prio', bar(pData.values, pData.labels, '#f43f5e', false));
+            draw('chart-prio', bar(pData.values, pData.labels, '#353535', false));
 
-            // Request Type Top 10
             const rData = count(data, COL.REQ, 10);
-            draw('chart-req', bar(rData.values, rData.labels, '#8b5cf6', true));
+            draw('chart-req', bar(rData.values, rData.labels, '#284B63', true));
 
             renderHeatmaps(data);
         }
@@ -242,7 +244,7 @@
         function bar(v, l, c, h) {
             const total = v.reduce((a,b) => a+b, 0);
             return {
-                series: [{ name: 'Quantidade', data: v }],
+                series: [{ name: 'Tickets', data: v }],
                 chart: { type: 'bar', height: 300, toolbar: {show:true} },
                 plotOptions: { bar: { horizontal: h, borderRadius: 4, dataLabels: { position: 'top' } } },
                 colors: [c],
@@ -250,19 +252,17 @@
                 dataLabels: {
                     enabled: true,
                     formatter: (val) => `${val} (${((val/total)*100).toFixed(0)}%)`,
-                    style: { fontSize: '10px', colors: ['#334155'] }
+                    style: { fontSize: '10px', colors: ['#353535'] }
                 }
             };
         }
 
         function renderHeatmaps(data) {
-            // Heatmap Semanal
             const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
             let wk = days.map(d => ({ name: d, data: Array(24).fill(0).map((_,i)=>({x:i+'h', y:0})) }));
             data.forEach(d => {
                 let p = parseJiraDate(d[COL.CREATED]);
                 if(p) {
-                    // Calculando dia da semana
                     let dObj = new Date(p.year, p.month-1, p.day);
                     let dayIdx = (dObj.getDay() + 6) % 7;
                     if(wk[dayIdx]) wk[dayIdx].data[p.hour].y++;
@@ -271,11 +271,10 @@
             draw('chart-week', {
                 series: wk.reverse(),
                 chart: { type: 'heatmap', height: 300 },
-                colors: ["#3b82f6"],
+                colors: ["#284B63"],
                 dataLabels: { enabled: false }
             });
 
-            // Heatmap Mensal
             const ms = ["Jan", "Fev", "Mar"];
             let mth = ms.map(m => ({ name: m, data: Array(31).fill(0).map((_,i)=>({x:(i+1).toString(), y:0})) }));
             data.forEach(d => {
@@ -287,11 +286,10 @@
             draw('chart-month', {
                 series: mth.reverse(),
                 chart: { type: 'heatmap', height: 250 },
-                colors: ["#10b981"],
+                colors: ["#3C6E71"],
                 dataLabels: { enabled: false }
             });
 
-            // Matriz
             const sec = count(data, COL.SECTOR, 8).labels;
             const req = count(data, COL.REQ, 12).labels;
             let mtx = req.map(r => ({
@@ -301,7 +299,7 @@
             draw('chart-matrix', {
                 series: mtx,
                 chart: { type: 'heatmap', height: 450 },
-                colors: ["#6366f1"],
+                colors: ["#284B63"],
                 dataLabels: { enabled: true }
             });
         }
