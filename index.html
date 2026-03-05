@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Paleta Coolors: #0D1B2A, #1B263B, #415A77, #778DA9, #E0E1DD */
+        /* Paleta: #0D1B2A (Navy), #1B263B, #415A77, #778DA9, #E0E1DD (Light) */
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #E0E1DD; 
@@ -75,14 +75,17 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div class="flex items-center gap-6 text-center md:text-left">
                 <div class="logo-container bg-white p-2 rounded-xl shadow-lg">
-                    <img src="logo.png" alt="Grupo Conexão" onerror="this.src='https://via.placeholder.com/150x50?text=LOGOMARCA'">
+                    <img src="logo.png" alt="Grupo Conexão" onerror="this.src='https://via.placeholder.com/150x50/FFFFFF/0D1B2A?text=LOGO+CONEX%C3%83O'">
                 </div>
                 <div>
                     <h1 class="text-3xl font-black tracking-tight uppercase leading-none mb-1">Helpdesk Analytics</h1>
                     <p class="text-[#778DA9] text-xs font-bold tracking-widest uppercase">TI Grupo Conexão</p>
                 </div>
             </div>
-            <div id="last-update" class="text-xs font-mono bg-[#E0E1DD] text-[#0D1B2A] px-6 py-2 rounded-lg border-b-4 border-[#778DA9] shadow-inner font-bold"></div>
+            <div id="last-update" class="text-[11px] font-mono bg-[#E0E1DD] text-[#0D1B2A] px-5 py-3 rounded-xl border-b-4 border-[#778DA9] shadow-inner font-bold flex flex-col items-center md:items-end">
+                <span class="text-[#415A77] text-[9px] uppercase tracking-tighter">Sincronização de dados</span>
+                <span id="sync-time">Carregando...</span>
+            </div>
         </div>
     </header>
 
@@ -151,7 +154,7 @@
         </div>
 
         <div class="card-3d mb-10">
-            <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Heatmap Semanal (Concentração de Demanda)</h3>
+            <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Heatmap Semanal (Volume de Abertura)</h3>
             <div id="chart-week"></div>
         </div>
 
@@ -219,7 +222,11 @@
             fill('f-status', getU(COL.STATUS));
             fill('f-type', getU(COL.TYPE));
             fill('f-req', getU(COL.REQ));
-            document.getElementById('last-update').innerText = "SINCRONIZADO: 2026";
+            
+            // Ajuste da exibição da data de sincronização
+            const now = moment().format('DD/MM/YYYY [às] HH:mm');
+            document.getElementById('sync-time').innerText = now;
+            
             apply();
         }
 
