@@ -69,38 +69,38 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2">FLUXO: CRIADOS VS FINALIZADOS</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Fluxo: Criados vs Finalizados</h3>
                     <div id="chart-timeline"></div>
                 </div>
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2">TOP 10 SETORES SOLICITANTES</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Top 10 Setores Solicitantes</h3>
                     <div id="chart-sectors"></div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2">PRIORIDADE DOS CHAMADOS</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Prioridade dos Chamados</h3>
                     <div id="chart-priority"></div>
                 </div>
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2">TOP 10 REQUEST TYPES</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Top 10 Request Types</h3>
                     <div id="chart-reqtypes"></div>
                 </div>
             </div>
 
             <div class="card mb-8">
-                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center">HEATMAP SEMANAL (DIA DA SEMANA VS HORA)</h3>
+                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center text-sm uppercase">Heatmap Semanal (Volume de Abertura)</h3>
                 <div id="chart-heatmap-week"></div>
             </div>
 
             <div class="card mb-8">
-                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center">HEATMAP MENSAL (DIA DO MÊS VS MÊS)</h3>
+                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center text-sm uppercase">Heatmap Mensal (Volume de Abertura)</h3>
                 <div id="chart-heatmap-month"></div>
             </div>
 
             <div class="card mb-8 overflow-x-auto">
-                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center uppercase">Matriz: Request Type por Setor Solicitante</h3>
+                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center text-sm uppercase">Matriz: Request Type por Setor Solicitante</h3>
                 <div id="chart-matrix" style="min-width: 1000px;"></div>
             </div>
         </main>
@@ -120,7 +120,6 @@
             SECTOR: 'Campo personalizado (Setor Solicitante)'
         };
 
-        // Função para garantir leitura correta de caracteres especiais
         function normalizeString(str) {
             if (!str) return "";
             return str.toString().replace(/^\uFEFF/, '').trim();
@@ -131,7 +130,7 @@
                 download: true,
                 header: true,
                 skipEmptyLines: true,
-                encoding: "ISO-8859-1", // Padrão Excel/Jira no Brasil
+                encoding: "ISO-8859-1",
                 complete: function(results) {
                     rawData = results.data.map(row => {
                         let cleanRow = {};
@@ -148,7 +147,7 @@
         function initDashboard() {
             populateFilters();
             applyFilters();
-            document.getElementById('last-update').innerText = "SINCRONIZADO: " + moment().format('DD/MM/YYYY HH:mm');
+            document.getElementById('last-update').innerText = "SINCRONIZADO EM: " + moment().format('DD/MM/YYYY HH:mm');
         }
 
         function populateFilters() {
@@ -196,9 +195,11 @@
         function renderDashboard(data) {
             const total = data.length;
             const finishedCount = data.filter(d => isFinished(d[COL.STATUS])).length;
+            const canceledCount = data.filter(d => (d[COL.STATUS] || "").toLowerCase() === "cancelado").length;
             
-            // Cálculo da Taxa de Eficiência corrigido
-            const rate = total > 0 ? ((finishedCount / total) * 100).toFixed(1) : 0;
+            // Nova Regra de Eficiência: (Res + Conc) / (Total - Cancelado)
+            const atendiveis = total - canceledCount;
+            const rate = atendiveis > 0 ? ((finishedCount / atendiveis) * 100).toFixed(1) : 0;
 
             document.getElementById('kpi-total').innerText = total;
             document.getElementById('kpi-resolved').innerText = finishedCount;
@@ -222,19 +223,17 @@
         }
 
         function renderBarChart(id, dataObj, color, horizontal) {
-            const total = dataObj.values.reduce((a,b) => a+b, 0);
+            const totalLocal = dataObj.values.reduce((a,b) => a+b, 0);
             const options = {
-                series: [{ name: 'Total', data: dataObj.values }],
+                series: [{ name: 'Tickets', data: dataObj.values }],
                 chart: { type: 'bar', height: 350, toolbar: { show: true } },
                 plotOptions: { bar: { horizontal: horizontal, borderRadius: 6, dataLabels: { position: 'top' } } },
                 colors: [color],
                 xaxis: { categories: dataObj.labels },
                 dataLabels: {
                     enabled: true,
-                    formatter: (val) => `${val} (${((val/total)*100).toFixed(1)}%)`,
-                    style: { fontSize: '11px', fontWeight: 'bold', colors: ['#1e293b'] },
-                    offsetY: horizontal ? 0 : -20,
-                    offsetX: horizontal ? 10 : 0
+                    formatter: (val) => `${val} (${((val/totalLocal)*100).toFixed(0)}%)`,
+                    style: { fontSize: '11px', fontWeight: 'bold', colors: ['#1e293b'] }
                 }
             };
             updateChart(id, options);
@@ -246,7 +245,6 @@
             data.forEach(d => {
                 const dc = moment(d[COL.CREATED]).format('YYYY-MM-DD');
                 if(dc !== "Invalid date") createdMap[dc] = (createdMap[dc] || 0) + 1;
-                
                 if(isFinished(d[COL.STATUS])) {
                     const df = moment(d[COL.UPDATED]).format('YYYY-MM-DD');
                     if(df !== "Invalid date") finishedMap[df] = (finishedMap[df] || 0) + 1;
@@ -255,8 +253,8 @@
             const allDates = [...new Set([...Object.keys(createdMap), ...Object.keys(finishedMap)])].sort();
             const options = {
                 series: [
-                    { name: 'Criados', data: allDates.map(d => createdMap[d] || 0) },
-                    { name: 'Finalizados (Res/Conc)', data: allDates.map(d => finishedMap[d] || 0) }
+                    { name: 'Chamados Abertos', data: allDates.map(d => createdMap[d] || 0) },
+                    { name: 'Chamados Finalizados', data: allDates.map(d => finishedMap[d] || 0) }
                 ],
                 chart: { type: 'area', height: 350, toolbar: { show: true } },
                 colors: ['#3b82f6', '#10b981'],
@@ -285,11 +283,10 @@
             const options = {
                 series: series.reverse(),
                 chart: { type: 'heatmap', height: 350, toolbar: { show: true } },
-                colors: ["#f59e0b"],
+                colors: ["#ea580c"],
                 plotOptions: { heatmap: { colorScale: { ranges: [
                     { from: 0, to: 0, color: '#f8fafc' },
-                    { from: 1, to: 5, color: '#fbbf24' },
-                    { from: 6, to: 100, color: '#ea580c' }
+                    { from: 1, to: 100, color: '#ea580c' }
                 ]}}},
                 dataLabels: { enabled: false }
             };
