@@ -3,110 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk | Grupo Conexão</title>
+    <title>BI Helpdesk 3D | Grupo Conexão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #D9D9D9; color: #353535; }
-        .card { background: #FFFFFF; border-radius: 12px; padding: 1.5rem; border: 1px solid #c0c0c0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .filter-select { background: #FFFFFF; border: 1px solid #353535; border-radius: 8px; padding: 0.5rem; width: 100%; color: #353535; font-size: 0.875rem; }
-        .kpi-value { font-size: 2.2rem; font-weight: 800; line-height: 1; margin-top: 0.5rem; }
-        header { background-color: #284B63; color: #FFFFFF; }
-        .btn-primary { background-color: #3C6E71; color: #FFFFFF; transition: filter 0.2s; }
-        .btn-primary:hover { filter: brightness(1.2); }
+        /* Paleta: #353535 (Dark), #3C6E71 (Teal), #FFFFFF (White), #D9D9D9 (Grey), #284B63 (Blue) */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #D9D9D9; 
+            color: #353535;
+            perspective: 1000px;
+        }
+
+        /* Efeito 3D nos Cards */
+        .card-3d { 
+            background: #FFFFFF; 
+            border-radius: 16px; 
+            padding: 1.5rem; 
+            border: 1px solid #c0c0c0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform: translateZ(0);
+        }
+
+        .card-3d:hover {
+            transform: translateY(-8px) translateZ(10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15), 10px 10px 0px #3C6E71;
+        }
+
+        /* Botão 3D */
+        .btn-3d {
+            background-color: #3C6E71;
+            color: white;
+            border-bottom: 4px solid #284B63;
+            transition: all 0.1s;
+        }
+        .btn-3d:active {
+            transform: translateY(2px);
+            border-bottom: 2px solid #284B63;
+        }
+
+        /* KPI Style */
+        .kpi-title { font-size: 0.75rem; font-weight: 800; color: #353535; opacity: 0.7; text-transform: uppercase; }
+        .kpi-value { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+
+        header { background: linear-gradient(135deg, #284B63 0%, #3C6E71 100%); color: #FFFFFF; box-shadow: 0 10px 20px rgba(40, 75, 99, 0.3); }
+
+        .filter-select { 
+            background: #FFFFFF; 
+            border: 2px solid #D9D9D9; 
+            border-radius: 10px; 
+            padding: 0.6rem; 
+            width: 100%; 
+            font-weight: 600;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
-<body class="pb-10">
+<body class="pb-20">
 
-    <header class="p-6 mb-8 shadow-md">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <header class="p-8 mb-10 text-center md:text-left">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
-                <h1 class="text-2xl font-black tracking-tighter uppercase">TI GRUPO CONEXÃO</h1>
-                <p class="text-blue-100 text-sm">Dashboard de Performance Helpdesk</p>
+                <h1 class="text-3xl font-black tracking-tight uppercase">Dashboard Helpdesk 3D</h1>
+                <p class="text-white/80 text-sm font-semibold tracking-wide">GRUPO CONEXÃO - JIRA SERVICE MANAGEMENT</p>
             </div>
-            <div id="last-update" class="text-[10px] font-mono bg-[#353535] px-3 py-1 rounded border border-white text-white"></div>
+            <div id="last-update" class="text-xs font-bold bg-[#353535] px-5 py-2 rounded-full border-2 border-white/20 shadow-lg"></div>
         </div>
     </header>
 
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="card mb-8 grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="card-3d mb-10 grid grid-cols-1 md:grid-cols-5 gap-6">
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Setor</label>
-                <select id="f-sector" class="filter-select" onchange="apply()"><option value="All">Todos os Setores</option></select>
+                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase">Setor</label>
+                <select id="f-sector" class="filter-select" onchange="apply()"><option value="All">Todos</option></select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Status</label>
-                <select id="f-status" class="filter-select" onchange="apply()"><option value="All">Todos os Status</option></select>
+                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase">Status</label>
+                <select id="f-status" class="filter-select" onchange="apply()"><option value="All">Todos</option></select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Tipo Item</label>
-                <select id="f-type" class="filter-select" onchange="apply()"><option value="All">Todos os Tipos</option></select>
+                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase">Tipo Item</label>
+                <select id="f-type" class="filter-select" onchange="apply()"><option value="All">Todos</option></select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Solicitação</label>
+                <label class="block text-[10px] font-black text-slate-500 mb-2 uppercase">Solicitação</label>
                 <select id="f-req" class="filter-select" onchange="apply()"><option value="All">Todas</option></select>
             </div>
             <div class="flex items-end">
-                <button onclick="reset()" class="w-full btn-primary font-bold py-2 rounded-lg text-xs uppercase tracking-wider shadow-sm">Limpar Filtros</button>
+                <button onclick="reset()" class="w-full btn-3d font-black py-3 rounded-xl text-xs uppercase tracking-widest shadow-lg">Resetar Filtros</button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="card border-t-4 border-[#284B63]">
-                <p class="text-xs font-bold text-slate-500 uppercase">Total de Chamados</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div class="card-3d">
+                <p class="kpi-title">Total de Chamados</p>
                 <div id="kpi-total" class="kpi-value text-[#284B63]">0</div>
             </div>
-            <div class="card border-t-4 border-[#3C6E71]">
-                <p class="text-xs font-bold text-slate-500 uppercase">Finalizados</p>
+            <div class="card-3d">
+                <p class="kpi-title">Finalizados</p>
                 <div id="kpi-resolved" class="kpi-value text-[#3C6E71]">0</div>
             </div>
-            <div class="card border-t-4 border-[#353535]">
-                <p class="text-xs font-bold text-slate-500 uppercase">Cancelados</p>
+            <div class="card-3d">
+                <p class="kpi-title">Cancelados</p>
                 <div id="kpi-canceled" class="kpi-value text-[#353535]">0</div>
             </div>
-            <div class="card border-t-4 border-[#284B63]">
-                <p class="text-xs font-bold text-slate-500 uppercase">Taxa de Eficiência</p>
+            <div class="card-3d border-b-8 border-[#3C6E71]">
+                <p class="kpi-title">Taxa de Eficiência</p>
                 <div id="kpi-rate" class="kpi-value text-[#284B63]">0%</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div class="card">
-                <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest text-center">Evolução de chamados criados</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+            <div class="card-3d">
+                <h3 class="text-xs font-black text-slate-500 uppercase mb-6 tracking-tighter text-center">Evolução de chamados criados</h3>
                 <div id="chart-ev"></div>
             </div>
-            <div class="card">
-                <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest text-center">Top 10 Setores Solicitantes</h3>
+            <div class="card-3d">
+                <h3 class="text-xs font-black text-slate-500 uppercase mb-6 tracking-tighter text-center">Top 10 Setores Solicitantes</h3>
                 <div id="chart-sectors"></div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div class="card">
-                <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest text-center">Prioridade dos Chamados</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+            <div class="card-3d">
+                <h3 class="text-xs font-black text-slate-500 uppercase mb-6 tracking-tighter text-center">Prioridade dos Chamados</h3>
                 <div id="chart-prio"></div>
             </div>
-            <div class="card">
-                <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest text-center">Top 10 Request Types</h3>
+            <div class="card-3d">
+                <h3 class="text-xs font-black text-slate-500 uppercase mb-6 tracking-tighter text-center">Top 10 Request Types</h3>
                 <div id="chart-req"></div>
             </div>
         </div>
 
-        <div class="card mb-8">
-            <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest text-center">Heatmap Semanal (Volume de Abertura)</h3>
+        <div class="card-3d mb-10">
+            <h3 class="text-xs font-black text-slate-500 uppercase mb-6 tracking-tighter text-center">Heatmap Semanal (Volume de Abertura)</h3>
             <div id="chart-week"></div>
         </div>
 
-        <div class="card mb-8">
-            <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest text-center">Heatmap Mensal (Volume de Abertura)</h3>
+        <div class="card-3d mb-10">
+            <h3 class="text-xs font-black text-slate-500 uppercase mb-6 tracking-tighter text-center">Heatmap Mensal (Volume de Abertura)</h3>
             <div id="chart-month"></div>
         </div>
 
-        <div class="card mb-8">
-            <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest text-center">Matriz: Tipo de Solicitação por Setor Solicitante</h3>
+        <div class="card-3d mb-10">
+            <h3 class="text-xs font-black text-slate-500 uppercase mb-6 tracking-tighter text-center">Matriz: Tipo de Solicitação por Setor Solicitante</h3>
             <div id="chart-matrix" class="overflow-x-auto"></div>
         </div>
     </div>
@@ -168,7 +212,7 @@
             fill('f-status', getU(COL.STATUS));
             fill('f-type', getU(COL.TYPE));
             fill('f-req', getU(COL.REQ));
-            document.getElementById('last-update').innerText = "ATUALIZADO: " + moment().format('DD/MM/YYYY HH:mm');
+            document.getElementById('last-update').innerText = "ÚLTIMA SINCRONIZAÇÃO: " + moment().format('HH:mm:ss');
             apply();
         }
 
@@ -208,41 +252,34 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Mensal - Barras de Abertos vs Concluídos
+            // Evolução Mensal - APENAS ABERTOS
             const evOrder = ["01/26", "02/26", "03/26"];
             const evNames = {"01/26":"Jan/26", "02/26":"Fev/26", "03/26":"Mar/26"};
             let openedCount = {"01/26":0, "02/26":0, "03/26":0};
-            let finishedCount = {"01/26":0, "02/26":0, "03/26":0};
             
             data.forEach(d => {
                 let pOpen = parseJiraDate(d[COL.CREATED]);
                 if(pOpen && openedCount.hasOwnProperty(pOpen.monthKey)) openedCount[pOpen.monthKey]++;
-                
-                if(isF(d[COL.STATUS])) {
-                    let pFinish = parseJiraDate(d[COL.UPDATED]);
-                    if(pFinish && finishedCount.hasOwnProperty(pFinish.monthKey)) finishedCount[pFinish.monthKey]++;
-                }
             });
 
             draw('chart-ev', {
-                series: [
-                    { name: 'Abertos', data: evOrder.map(k => openedCount[k]) },
-                    { name: 'Concluídos', data: evOrder.map(k => finishedCount[k]) }
-                ],
-                chart: { type: 'bar', height: 280, toolbar: {show:true} },
-                colors: ['#284B63', '#3C6E71'],
+                series: [{ name: 'Abertos', data: evOrder.map(k => openedCount[k]) }],
+                chart: { type: 'bar', height: 280, toolbar: {show:true}, sparkline: {enabled: false} },
+                colors: ['#284B63'],
                 xaxis: { categories: evOrder.map(k => evNames[k]) },
-                dataLabels: { enabled: true },
-                legend: { position: 'top' }
+                dataLabels: { enabled: true, offsetY: -20, style: { colors: ['#353535'] } },
+                plotOptions: { bar: { borderRadius: 8, columnWidth: '40%' } }
             });
 
-            // Outros Gráficos
+            // Setores
             const sData = count(data, COL.SECTOR, 10);
             draw('chart-sectors', bar(sData.values, sData.labels, '#3C6E71', true));
             
+            // Prioridade
             const pData = count(data, COL.PRIO);
             draw('chart-prio', bar(pData.values, pData.labels, '#353535', false));
 
+            // Request Type
             const rData = count(data, COL.REQ, 10);
             draw('chart-req', bar(rData.values, rData.labels, '#284B63', true));
 
@@ -262,7 +299,7 @@
             return {
                 series: [{ name: 'Tickets', data: v }],
                 chart: { type: 'bar', height: 300, toolbar: {show:true} },
-                plotOptions: { bar: { horizontal: h, borderRadius: 4, dataLabels: { position: 'top' } } },
+                plotOptions: { bar: { horizontal: h, borderRadius: 6, dataLabels: { position: 'top' } } },
                 colors: [c],
                 xaxis: { categories: l },
                 dataLabels: {
