@@ -69,7 +69,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Fluxo: Criados vs Finalizados</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Evolução de chamados criados</h3>
                     <div id="chart-timeline"></div>
                 </div>
                 <div class="card">
@@ -197,7 +197,7 @@
             const finishedCount = data.filter(d => isFinished(d[COL.STATUS])).length;
             const canceledCount = data.filter(d => (d[COL.STATUS] || "").toLowerCase() === "cancelado").length;
             
-            // Nova Regra de Eficiência: (Res + Conc) / (Total - Cancelado)
+            // Taxa: (Res + Conc) / (Total - Cancelado)
             const atendiveis = total - canceledCount;
             const rate = atendiveis > 0 ? ((finishedCount / atendiveis) * 100).toFixed(1) : 0;
 
@@ -242,26 +242,39 @@
         function renderTimelineChart(data) {
             const createdMap = {};
             const finishedMap = {};
+            
             data.forEach(d => {
-                const dc = moment(d[COL.CREATED]).format('YYYY-MM-DD');
-                if(dc !== "Invalid date") createdMap[dc] = (createdMap[dc] || 0) + 1;
+                const dateC = moment(d[COL.CREATED]);
+                if(dateC.isValid()) {
+                    const monthKey = dateC.format('YYYY-MM'); 
+                    createdMap[monthKey] = (createdMap[monthKey] || 0) + 1;
+                }
+                
                 if(isFinished(d[COL.STATUS])) {
-                    const df = moment(d[COL.UPDATED]).format('YYYY-MM-DD');
-                    if(df !== "Invalid date") finishedMap[df] = (finishedMap[df] || 0) + 1;
+                    const dateF = moment(d[COL.UPDATED]);
+                    if(dateF.isValid()) {
+                        const monthKeyF = dateF.format('YYYY-MM');
+                        finishedMap[monthKeyF] = (finishedMap[monthKeyF] || 0) + 1;
+                    }
                 }
             });
-            const allDates = [...new Set([...Object.keys(createdMap), ...Object.keys(finishedMap)])].sort();
+
+            const allMonths = [...new Set([...Object.keys(createdMap), ...Object.keys(finishedMap)])].sort();
+            
             const options = {
                 series: [
-                    { name: 'Chamados Abertos', data: allDates.map(d => createdMap[d] || 0) },
-                    { name: 'Chamados Finalizados', data: allDates.map(d => finishedMap[d] || 0) }
+                    { name: 'Abertos', data: allMonths.map(m => createdMap[m] || 0) },
+                    { name: 'Finalizados', data: allMonths.map(m => finishedMap[m] || 0) }
                 ],
-                chart: { type: 'area', height: 350, toolbar: { show: true } },
+                chart: { type: 'line', height: 350, toolbar: { show: true } },
                 colors: ['#3b82f6', '#10b981'],
-                stroke: { curve: 'smooth', width: 3 },
-                fill: { type: 'gradient', gradient: { opacityFrom: 0.5, opacityTo: 0.1 } },
-                xaxis: { categories: allDates, type: 'datetime' },
-                dataLabels: { enabled: false }
+                stroke: { curve: 'smooth', width: 4 },
+                xaxis: { 
+                    categories: allMonths.map(m => moment(m).format('MMM/YY')),
+                    type: 'category' 
+                },
+                markers: { size: 5 },
+                dataLabels: { enabled: true }
             };
             updateChart('chart-timeline', options);
         }
