@@ -3,102 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard TI - Grupo Conexão</title>
+    <title>Dashboard Helpdesk - Grupo Conexão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); padding: 1.5rem; }
-        .filter-select { border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem; width: 100%; background: white; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 1.5rem; border: 1px solid #e5e7eb; }
+        .filter-select { border: 1px solid #d1d5db; border-radius: 8px; padding: 0.6rem; width: 100%; background: white; cursor: pointer; }
+        .kpi-title { color: #6b7280; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
     </style>
 </head>
 <body class="text-gray-800">
 
     <div class="min-h-screen flex flex-col">
-        <header class="bg-blue-900 text-white p-6 shadow-lg">
+        <header class="bg-slate-900 text-white p-6 shadow-xl">
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-                <h1 class="text-2xl font-bold tracking-tight">Helpdesk TI | Grupo Conexão</h1>
-                <div class="flex items-center gap-2">
-                    <span id="last-update" class="text-sm opacity-80 italic">Carregando dados...</span>
+                <div>
+                    <h1 class="text-2xl font-bold">BI Helpdesk | Grupo Conexão</h1>
+                    <p class="text-blue-400 text-sm">Dados Jira Service Management</p>
                 </div>
+                <div id="last-update" class="text-xs bg-slate-800 px-4 py-2 rounded-full border border-slate-700">Carregando dados...</div>
             </div>
         </header>
 
         <main class="container mx-auto p-4 md:p-8 flex-grow">
             <div class="card mb-8 grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Setor</label>
-                    <select id="filter-sector" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">SETOR SOLICITANTE</label>
+                    <select id="filter-sector" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Setores</option></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Status</label>
-                    <select id="filter-status" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">STATUS ATUAL</label>
+                    <select id="filter-status" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Status</option></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Tipo Item</label>
-                    <select id="filter-type" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">TIPO DE ITEM</label>
+                    <select id="filter-type" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Tipos</option></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase">Request Type</label>
-                    <select id="filter-reqtype" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">REQUEST TYPE</label>
+                    <select id="filter-reqtype" class="filter-select" onchange="applyFilters()"><option value="All">Todas as Solicitações</option></select>
                 </div>
                 <div class="flex items-end">
-                    <button onclick="resetFilters()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition">Limpar Filtros</button>
+                    <button onclick="resetFilters()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg transition shadow-md">Limpar Filtros</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="card text-center">
-                    <p class="text-gray-500 text-sm font-semibold uppercase">Total de Chamados</p>
-                    <h2 id="kpi-total" class="text-4xl font-bold text-blue-600">0</h2>
+                <div class="card border-l-4 border-blue-500">
+                    <p class="kpi-title">Total de Chamados</p>
+                    <h2 id="kpi-total" class="text-4xl font-black text-slate-800">0</h2>
                 </div>
-                <div class="card text-center">
-                    <p class="text-gray-500 text-sm font-semibold uppercase">Resolvidos / Concluídos</p>
-                    <h2 id="kpi-resolved" class="text-4xl font-bold text-green-600">0</h2>
+                <div class="card border-l-4 border-green-500">
+                    <p class="kpi-title">Finalizados (Resolvido/Concluído)</p>
+                    <h2 id="kpi-resolved" class="text-4xl font-black text-green-600">0</h2>
                 </div>
-                <div class="card text-center">
-                    <p class="text-gray-500 text-sm font-semibold uppercase">Taxa de Resolução</p>
-                    <h2 id="kpi-rate" class="text-4xl font-bold text-purple-600">0%</h2>
+                <div class="card border-l-4 border-orange-500">
+                    <p class="kpi-title">Taxa de Eficiência</p>
+                    <h2 id="kpi-rate" class="text-4xl font-black text-orange-600">0%</h2>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-bold mb-4 text-gray-700">Criados vs Resolvidos no Período</h3>
+                    <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-blue-500 rounded"></span>Volume Temporal: Criados vs Resolvidos</h3>
                     <div id="chart-timeline"></div>
                 </div>
                 <div class="card">
-                    <h3 class="font-bold mb-4 text-gray-700">Distribuição por Prioridade</h3>
+                    <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-orange-500 rounded"></span>Demandas por Prioridade</h3>
                     <div id="chart-priority"></div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-bold mb-4 text-gray-700">Top 10 Setores Solicitantes</h3>
+                    <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-green-500 rounded"></span>Top 10 Setores (Volume)</h3>
                     <div id="chart-sectors"></div>
                 </div>
                 <div class="card">
-                    <h3 class="font-bold mb-4 text-gray-700">Top 10 Request Types</h3>
+                    <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-purple-500 rounded"></span>Top 10 Tipos de Solicitação</h3>
                     <div id="chart-reqtypes"></div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-8 mb-8">
-                <div class="card overflow-x-auto">
-                    <h3 class="font-bold mb-4 text-gray-700">Heatmap Semanal (Dia da Semana vs Hora de Abertura)</h3>
-                    <div id="chart-heatmap-week" style="min-width: 600px;"></div>
-                </div>
+            <div class="card mb-8 overflow-x-auto">
+                <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-red-500 rounded"></span>Heatmap Semanal: Concentração de Aberturas</h3>
+                <div id="chart-heatmap-week" style="min-width: 800px;"></div>
             </div>
 
-            <div class="grid grid-cols-1 gap-8 mb-8">
-                <div class="card overflow-x-auto">
-                    <h3 class="font-bold mb-4 text-gray-700">Cruzamento: Request Type vs Setor Solicitante</h3>
-                    <div id="chart-matrix" style="min-width: 800px;"></div>
-                </div>
+            <div class="card mb-8 overflow-x-auto">
+                <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-yellow-500 rounded"></span>Cruzamento: Solicitação vs Setor</h3>
+                <div id="chart-matrix" style="min-width: 900px;"></div>
             </div>
         </main>
     </div>
@@ -107,10 +105,8 @@
         let rawData = [];
         let charts = {};
 
-        // Mapeamento de colunas baseado na sua descrição
         const COL = {
             ITEM_TYPE: 'Tipo de item',
-            SUMMARY: 'Resumo',
             STATUS: 'Status',
             PRIORITY: 'Prioridade',
             CREATED: 'Criado',
@@ -119,18 +115,15 @@
             SECTOR: 'Campo personalizado (Setor Solicitante)'
         };
 
-        // Carregar dados
         window.onload = function() {
             Papa.parse("data.csv", {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
+                encoding: "UTF-8",
                 complete: function(results) {
                     rawData = results.data;
                     initDashboard();
-                },
-                error: function() {
-                    alert("Erro ao carregar data.csv. Verifique se o arquivo existe no repositório.");
                 }
             });
         };
@@ -138,30 +131,24 @@
         function initDashboard() {
             populateFilters();
             applyFilters();
-            document.getElementById('last-update').innerText = "Última atualização: " + moment().format('DD/MM/YYYY HH:mm');
+            document.getElementById('last-update').innerText = "Sincronizado em: " + moment().format('DD/MM/YYYY HH:mm');
         }
 
         function populateFilters() {
-            const sectors = [...new Set(rawData.map(d => d[COL.SECTOR]))].sort();
-            const statuses = [...new Set(rawData.map(d => d[COL.STATUS]))].sort();
-            const types = [...new Set(rawData.map(d => d[COL.ITEM_TYPE]))].sort();
-            const reqTypes = [...new Set(rawData.map(d => d[COL.REQ_TYPE]))].sort();
-
-            fillSelect('filter-sector', sectors);
-            fillSelect('filter-status', statuses);
-            fillSelect('filter-type', types);
-            fillSelect('filter-reqtype', reqTypes);
+            const getUnique = (field) => [...new Set(rawData.map(d => (d[field] || "").trim()))].filter(v => v !== "").sort();
+            fillSelect('filter-sector', getUnique(COL.SECTOR));
+            fillSelect('filter-status', getUnique(COL.STATUS));
+            fillSelect('filter-type', getUnique(COL.ITEM_TYPE));
+            fillSelect('filter-reqtype', getUnique(COL.REQ_TYPE));
         }
 
         function fillSelect(id, list) {
             const select = document.getElementById(id);
             list.forEach(item => {
-                if(item) {
-                    let opt = document.createElement('option');
-                    opt.value = item;
-                    opt.innerHTML = item;
-                    select.appendChild(opt);
-                }
+                let opt = document.createElement('option');
+                opt.value = item;
+                opt.innerHTML = item;
+                select.appendChild(opt);
             });
         }
 
@@ -172,10 +159,10 @@
             const fReqType = document.getElementById('filter-reqtype').value;
 
             const filtered = rawData.filter(d => {
-                return (fSector === 'All' || d[COL.SECTOR] === fSector) &&
-                       (fStatus === 'All' || d[COL.STATUS] === fStatus) &&
-                       (fType === 'All' || d[COL.ITEM_TYPE] === fType) &&
-                       (fReqType === 'All' || d[COL.REQ_TYPE] === fReqType);
+                return (fSector === 'All' || (d[COL.SECTOR] || "").trim() === fSector) &&
+                       (fStatus === 'All' || (d[COL.STATUS] || "").trim() === fStatus) &&
+                       (fType === 'All' || (d[COL.ITEM_TYPE] || "").trim() === fType) &&
+                       (fReqType === 'All' || (d[COL.REQ_TYPE] || "").trim() === fReqType);
             });
 
             renderDashboard(filtered);
@@ -187,50 +174,49 @@
         }
 
         function renderDashboard(data) {
-            // KPIs
+            const isResolved = (s) => ["Resolvido", "Concluído"].includes((s || "").trim());
+            
             const total = data.length;
-            const resolved = data.filter(d => ['Concluído', 'Resolvido'].includes(d[COL.STATUS])).length;
+            const resolvedCount = data.filter(d => isResolved(d[COL.STATUS])).length;
+            
             document.getElementById('kpi-total').innerText = total;
-            document.getElementById('kpi-resolved').innerText = resolved;
-            document.getElementById('kpi-rate').innerText = total > 0 ? ((resolved/total)*100).toFixed(1) + "%" : "0%";
+            document.getElementById('kpi-resolved').innerText = resolvedCount;
+            document.getElementById('kpi-rate').innerText = total > 0 ? ((resolvedCount/total)*100).toFixed(1) + "%" : "0%";
 
-            // 1. Linha: Criados vs Resolvidos
             renderTimelineChart(data);
-
-            // 2. Barras: Prioridade
-            renderBarChart('chart-priority', countOccurrences(data, COL.PRIORITY), '#3b82f6');
-
-            // 3. Top 10 Setores
+            renderBarChart('chart-priority', countOccurrences(data, COL.PRIORITY), '#f59e0b', false);
             renderBarChart('chart-sectors', countOccurrences(data, COL.SECTOR, 10), '#10b981', true);
-
-            // 4. Top 10 Request Types
             renderBarChart('chart-reqtypes', countOccurrences(data, COL.REQ_TYPE, 10), '#8b5cf6', true);
-
-            // 5. Heatmap Semanal (Dia da semana vs Hora)
             renderWeeklyHeatmap(data);
-
-            // 6. Matriz Request Type vs Setor
             renderMatrixChart(data);
         }
 
-        // --- Funções Auxiliares de Gráficos ---
-
         function countOccurrences(data, field, limit = null) {
             let counts = {};
-            data.forEach(d => { counts[d[field]] = (counts[d[field]] || 0) + 1; });
+            data.forEach(d => { 
+                let val = (d[field] || "Não Informado").trim();
+                counts[val] = (counts[val] || 0) + 1; 
+            });
             let entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
             if(limit) entries = entries.slice(0, limit);
             return { labels: entries.map(e => e[0]), values: entries.map(e => e[1]) };
         }
 
-        function renderBarChart(id, dataObj, color, horizontal = false) {
+        function renderBarChart(id, dataObj, color, horizontal) {
+            const totalLocal = dataObj.values.reduce((a, b) => a + b, 0);
             const options = {
                 series: [{ name: 'Chamados', data: dataObj.values }],
                 chart: { type: 'bar', height: 350, toolbar: {show: false} },
-                plotOptions: { bar: { horizontal: horizontal, borderRadius: 4 } },
+                plotOptions: { bar: { horizontal: horizontal, borderRadius: 6, dataLabels: { position: 'top' } } },
                 colors: [color],
                 xaxis: { categories: dataObj.labels },
-                dataLabels: { enabled: true }
+                dataLabels: {
+                    enabled: true,
+                    formatter: (val) => `${val} (${((val/totalLocal)*100).toFixed(1)}%)`,
+                    style: { fontSize: '10px', colors: ['#333'] },
+                    offsetY: horizontal ? 0 : -20,
+                    offsetX: horizontal ? 10 : 0
+                }
             };
             updateChart(id, options);
         }
@@ -241,11 +227,11 @@
             
             data.forEach(d => {
                 const dayC = moment(d[COL.CREATED]).format('YYYY-MM-DD');
-                createdMap[dayC] = (createdMap[dayC] || 0) + 1;
+                if(dayC !== "Invalid date") createdMap[dayC] = (createdMap[dayC] || 0) + 1;
                 
-                if(['Concluído', 'Resolvido'].includes(d[COL.STATUS])) {
+                if(["Resolvido", "Concluído"].includes((d[COL.STATUS] || "").trim())) {
                     const dayR = moment(d[COL.UPDATED]).format('YYYY-MM-DD');
-                    resolvedMap[dayR] = (resolvedMap[dayR] || 0) + 1;
+                    if(dayR !== "Invalid date") resolvedMap[dayR] = (resolvedMap[dayR] || 0) + 1;
                 }
             });
 
@@ -253,13 +239,14 @@
             
             const options = {
                 series: [
-                    { name: 'Criados', data: allDates.map(date => createdMap[date] || 0) },
-                    { name: 'Resolvidos', data: allDates.map(date => resolvedMap[date] || 0) }
+                    { name: 'Chamados Abertos', data: allDates.map(date => createdMap[date] || 0) },
+                    { name: 'Chamados Finalizados', data: allDates.map(date => resolvedMap[date] || 0) }
                 ],
-                chart: { type: 'line', height: 350, zoom: { enabled: false } },
+                chart: { type: 'area', height: 350, zoom: { enabled: true }, toolbar: {show: true} },
                 stroke: { curve: 'smooth', width: 3 },
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1 } },
                 colors: ['#3b82f6', '#10b981'],
-                xaxis: { categories: allDates, type: 'datetime' },
+                xaxis: { categories: allDates, type: 'datetime', labels: { format: 'dd/MM' } },
                 legend: { position: 'top' }
             };
             updateChart('chart-timeline', options);
@@ -274,7 +261,7 @@
                 if(date.isValid()) {
                     const dayIdx = (date.isoWeekday() - 1);
                     const hour = date.hour();
-                    matrix[dayIdx].data[hour].y++;
+                    if(dayIdx >= 0) matrix[dayIdx].data[hour].y++;
                 }
             });
 
@@ -282,32 +269,39 @@
                 series: matrix.reverse(),
                 chart: { type: 'heatmap', height: 350, toolbar: {show:false} },
                 dataLabels: { enabled: false },
-                colors: ["#3b82f6"],
-                title: { text: 'Volume por Horário de Abertura' }
+                plotOptions: { heatmap: { colorScale: { ranges: [
+                    { from: 0, to: 0, color: '#f3f4f6', name: 'Nenhum' },
+                    { from: 1, to: 2, color: '#fed7aa', name: 'Baixo' },
+                    { from: 3, to: 5, color: '#fb923c', name: 'Médio' },
+                    { from: 6, to: 100, color: '#ef4444', name: 'Alto' }
+                ]}}},
+                title: { text: 'Concentração de Abertura por Dia e Hora' }
             };
             updateChart('chart-heatmap-week', options);
         }
 
         function renderMatrixChart(data) {
-            const topSectors = countOccurrences(data, COL.SECTOR, 8).labels;
-            const topReqs = countOccurrences(data, COL.REQ_TYPE, 10).labels;
+            const topSectors = countOccurrences(data, COL.SECTOR, 12).labels;
+            const topReqs = countOccurrences(data, COL.REQ_TYPE, 15).labels;
 
-            const series = topReqs.map(req => {
-                return {
-                    name: req,
-                    data: topSectors.map(sec => {
-                        const count = data.filter(d => d[COL.REQ_TYPE] === req && d[COL.SECTOR] === sec).length;
-                        return { x: sec, y: count };
-                    })
-                };
-            });
+            const series = topReqs.map(req => ({
+                name: req,
+                data: topSectors.map(sec => {
+                    const count = data.filter(d => (d[COL.REQ_TYPE] || "").trim() === req && (d[COL.SECTOR] || "").trim() === sec).length;
+                    return { x: sec, y: count };
+                })
+            }));
 
             const options = {
                 series: series,
-                chart: { type: 'heatmap', height: 450 },
-                dataLabels: { enabled: true },
-                colors: ["#8b5cf6"],
-                xaxis: { labels: { rotate: -45, trim: true } }
+                chart: { type: 'heatmap', height: 500 },
+                dataLabels: { enabled: true, style: { colors: ['#fff'] } },
+                colors: ["#6366f1"],
+                plotOptions: { heatmap: { shadeIntensity: 0.5, colorScale: { ranges: [
+                    { from: 0, to: 0, color: '#f8fafc' },
+                    { from: 1, to: 100, color: '#4f46e5' }
+                ]}}},
+                xaxis: { labels: { rotate: -45 } }
             };
             updateChart('chart-matrix', options);
         }
