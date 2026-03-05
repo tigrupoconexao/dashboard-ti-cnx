@@ -7,90 +7,88 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #f1f5f9; }
         .card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 1.5rem; border: 1px solid #e2e8f0; }
         .filter-select { border: 2px solid #e2e8f0; border-radius: 8px; padding: 0.5rem; width: 100%; background: white; font-weight: 600; color: #1e293b; }
-        .filter-select:focus { border-color: #3b82f6; outline: none; }
     </style>
 </head>
 <body class="text-slate-800">
 
     <div class="min-h-screen flex flex-col">
-        <header class="bg-blue-700 text-white p-6 shadow-xl">
+        <header class="bg-blue-800 text-white p-6 shadow-xl">
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h1 class="text-3xl font-extrabold uppercase tracking-tighter">Helpdesk Grupo Conexão</h1>
-                    <p class="text-blue-100 text-sm font-semibold">Análise de Performance Jira Service Management</p>
+                    <p class="text-blue-100 text-sm font-semibold">Dashboard de TI</p>
                 </div>
-                <div id="last-update" class="text-xs bg-blue-800 px-4 py-2 rounded-full border border-blue-600 font-mono"></div>
+                <div id="last-update" class="text-xs bg-blue-900 px-4 py-2 rounded-full border border-blue-700 font-mono"></div>
             </div>
         </header>
 
         <main class="container mx-auto p-4 md:p-8 flex-grow">
-            <div class="card mb-8 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 bg-white border-b-4 border-blue-500">
+            <div class="card mb-8 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 bg-white border-b-4 border-blue-600">
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Setor</label>
-                    <select id="filter-sector" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Setores</option></select>
+                    <select id="filter-sector" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Status</label>
-                    <select id="filter-status" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Status</option></select>
+                    <select id="filter-status" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Tipo de Item</label>
-                    <select id="filter-type" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Tipos</option></select>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Tipo Item</label>
+                    <select id="filter-type" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Request Type</label>
-                    <select id="filter-reqtype" class="filter-select" onchange="applyFilters()"><option value="All">Todas as Solicitações</option></select>
+                    <select id="filter-reqtype" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
                 </div>
                 <div class="flex items-end">
-                    <button onclick="resetFilters()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-2 rounded-lg transition shadow-md uppercase text-xs">Limpar Filtros</button>
+                    <button onclick="resetFilters()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-2 rounded-lg transition uppercase text-xs">Limpar</button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="card border-l-8 border-blue-500">
-                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Total de Chamados</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-center">
+                <div class="card border-l-8 border-blue-600">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Total Chamados</p>
                     <h2 id="kpi-total" class="text-5xl font-black text-slate-900">0</h2>
                 </div>
-                <div class="card border-l-8 border-green-500">
-                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Finalizados (Res/Conc)</p>
-                    <h2 id="kpi-resolved" class="text-5xl font-black text-green-600">0</h2>
+                <div class="card border-l-8 border-emerald-600">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Finalizados</p>
+                    <h2 id="kpi-resolved" class="text-5xl font-black text-emerald-600">0</h2>
                 </div>
-                <div class="card border-l-8 border-amber-500">
-                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Taxa de Eficiência</p>
+                <div class="card border-l-8 border-amber-600">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Eficiência</p>
                     <h2 id="kpi-rate" class="text-5xl font-black text-amber-600">0%</h2>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Evolução de chamados criados</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase text-center">Evolução de chamados criados</h3>
                     <div id="chart-timeline"></div>
                 </div>
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Top 10 Setores Solicitantes</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase text-center">Top 10 Setores Solicitantes</h3>
                     <div id="chart-sectors"></div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Prioridade dos Chamados</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase text-center">Prioridade dos Chamados</h3>
                     <div id="chart-priority"></div>
                 </div>
                 <div class="card">
-                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase">Top 10 Request Types</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-sm uppercase text-center">Top 10 Request Types</h3>
                     <div id="chart-reqtypes"></div>
                 </div>
             </div>
 
             <div class="card mb-8">
-                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center text-sm uppercase">Heatmap Semanal (Volume de Abertura)</h3>
+                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center text-sm uppercase">Heatmap Semanal (Concentração de Aberturas)</h3>
                 <div id="chart-heatmap-week"></div>
             </div>
 
@@ -100,7 +98,7 @@
             </div>
 
             <div class="card mb-8 overflow-x-auto">
-                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center text-sm uppercase">Matriz: Request Type por Setor Solicitante</h3>
+                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center text-sm uppercase">Matriz: Tipo de Solicitação por Setor Solicitante</h3>
                 <div id="chart-matrix" style="min-width: 1000px;"></div>
             </div>
         </main>
@@ -134,9 +132,7 @@
                 complete: function(results) {
                     rawData = results.data.map(row => {
                         let cleanRow = {};
-                        Object.keys(row).forEach(key => {
-                            cleanRow[normalizeString(key)] = normalizeString(row[key]);
-                        });
+                        Object.keys(row).forEach(key => { cleanRow[normalizeString(key)] = normalizeString(row[key]); });
                         return cleanRow;
                     });
                     initDashboard();
@@ -147,7 +143,7 @@
         function initDashboard() {
             populateFilters();
             applyFilters();
-            document.getElementById('last-update').innerText = "SINCRONIZADO EM: " + moment().format('DD/MM/YYYY HH:mm');
+            document.getElementById('last-update').innerText = "SINCRONIZADO: 05/03/2026";
         }
 
         function populateFilters() {
@@ -194,21 +190,20 @@
 
         function renderDashboard(data) {
             const total = data.length;
-            const finishedCount = data.filter(d => isFinished(d[COL.STATUS])).length;
-            const canceledCount = data.filter(d => (d[COL.STATUS] || "").toLowerCase() === "cancelado").length;
+            const finished = data.filter(d => isFinished(d[COL.STATUS])).length;
+            const canceled = data.filter(d => (d[COL.STATUS] || "").toLowerCase() === "cancelado").length;
             
-            // Taxa: (Res + Conc) / (Total - Cancelado)
-            const atendiveis = total - canceledCount;
-            const rate = atendiveis > 0 ? ((finishedCount / atendiveis) * 100).toFixed(1) : 0;
+            const atendiveis = total - canceled;
+            const rate = atendiveis > 0 ? ((finished / atendiveis) * 100).toFixed(1) : 0;
 
             document.getElementById('kpi-total').innerText = total;
-            document.getElementById('kpi-resolved').innerText = finishedCount;
+            document.getElementById('kpi-resolved').innerText = finished;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            renderTimelineChart(data);
-            renderBarChart('chart-sectors', countData(data, COL.SECTOR, 10), '#3b82f6', true);
-            renderBarChart('chart-priority', countData(data, COL.PRIORITY), '#ef4444', false);
-            renderBarChart('chart-reqtypes', countData(data, COL.REQ_TYPE, 10), '#8b5cf6', true);
+            renderEvolution(data);
+            renderBarChart('chart-sectors', countData(data, COL.SECTOR, 10), '#2563eb', true);
+            renderBarChart('chart-priority', countData(data, COL.PRIORITY), '#dc2626', false);
+            renderBarChart('chart-reqtypes', countData(data, COL.REQ_TYPE, 10), '#7c3aed', true);
             renderWeeklyHeatmap(data);
             renderMonthlyHeatmap(data);
             renderMatrix(data);
@@ -227,97 +222,90 @@
             const options = {
                 series: [{ name: 'Tickets', data: dataObj.values }],
                 chart: { type: 'bar', height: 350, toolbar: { show: true } },
-                plotOptions: { bar: { horizontal: horizontal, borderRadius: 6, dataLabels: { position: 'top' } } },
+                plotOptions: { bar: { horizontal: horizontal, borderRadius: 4, dataLabels: { position: 'top' } } },
                 colors: [color],
                 xaxis: { categories: dataObj.labels },
                 dataLabels: {
                     enabled: true,
                     formatter: (val) => `${val} (${((val/totalLocal)*100).toFixed(0)}%)`,
-                    style: { fontSize: '11px', fontWeight: 'bold', colors: ['#1e293b'] }
+                    style: { fontSize: '11px', fontWeight: 'bold' }
                 }
             };
             updateChart(id, options);
         }
 
-        function renderTimelineChart(data) {
-            const stats = {};
+        function renderEvolution(data) {
+            const months = {"01": "Jan", "02": "Fev", "03": "Mar"};
+            const counts = {"Jan": 0, "Fev": 0, "Mar": 0};
             
             data.forEach(d => {
-                const dateC = moment(d[COL.CREATED]);
-                if(dateC.isValid()) {
-                    const monthKey = dateC.format('YYYY-MM'); 
-                    if(!stats[monthKey]) stats[monthKey] = { created: 0, finished: 0 };
-                    
-                    stats[monthKey].created++;
-                    if(isFinished(d[COL.STATUS])) {
-                        stats[monthKey].finished++;
-                    }
+                const parts = d[COL.CREATED].split('-');
+                if(parts.length > 1) {
+                    const monthName = months[parts[1]];
+                    if(monthName) counts[monthName]++;
                 }
             });
 
-            const sortedMonths = Object.keys(stats).sort();
-            const categories = sortedMonths.map(m => moment(m).format('MMM/YY'));
-            
+            const categories = ["Jan", "Fev", "Mar"];
             const options = {
-                series: [
-                    { name: 'Criados', data: sortedMonths.map(m => stats[m].created) },
-                    { name: 'Finalizados', data: sortedMonths.map(m => stats[m].finished) }
-                ],
-                chart: { type: 'bar', height: 350, toolbar: { show: true } },
-                colors: ['#3b82f6', '#10b981'],
-                plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 } },
+                series: [{ name: 'Criados', data: categories.map(c => counts[c]) }],
+                chart: { type: 'bar', height: 350, toolbar: {show: true} },
+                colors: ['#2563eb'],
                 xaxis: { categories: categories },
-                dataLabels: { enabled: true },
-                legend: { position: 'top' }
+                dataLabels: { enabled: true, style: { fontSize: '14px' } }
             };
             updateChart('chart-timeline', options);
         }
 
         function renderWeeklyHeatmap(data) {
-            const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+            const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
             const series = days.map((day, idx) => ({
                 name: day,
                 data: Array(24).fill(0).map((_, h) => ({ x: h+'h', y: 0 }))
             }));
             data.forEach(d => {
-                const date = moment(d[COL.CREATED]);
-                if(date.isValid()) {
-                    const dIdx = (date.isoWeekday() - 1);
-                    const hour = date.hour();
+                // Parsing manual para evitar erros de timezone
+                const parts = d[COL.CREATED].split(' ');
+                if(parts.length > 1) {
+                    const dateParts = parts[0].split('-');
+                    const timeParts = parts[1].split(':');
+                    const dObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
+                    const hour = parseInt(timeParts[0]);
+                    const dIdx = (dObj.getDay() + 6) % 7; // Ajuste para Seg=0
                     if(series[dIdx]) series[dIdx].data[hour].y++;
                 }
             });
             const options = {
                 series: series.reverse(),
-                chart: { type: 'heatmap', height: 350, toolbar: { show: true } },
+                chart: { type: 'heatmap', height: 350, toolbar: {show: true} },
                 colors: ["#ea580c"],
-                plotOptions: { heatmap: { colorScale: { ranges: [
-                    { from: 0, to: 0, color: '#f8fafc' },
-                    { from: 1, to: 100, color: '#ea580c' }
-                ]}}},
                 dataLabels: { enabled: false }
             };
             updateChart('chart-heatmap-week', options);
         }
 
         function renderMonthlyHeatmap(data) {
-            const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-            const series = months.map(m => ({
+            const monthsNames = ["Jan", "Fev", "Mar"];
+            const series = monthsNames.map((m, mIdx) => ({
                 name: m,
                 data: Array(31).fill(0).map((_, i) => ({ x: (i+1).toString(), y: 0 }))
             }));
+
             data.forEach(d => {
-                const date = moment(d[COL.CREATED]);
-                if(date.isValid()) {
-                    const mIdx = date.month();
-                    const dIdx = date.date() - 1;
-                    series[mIdx].data[dIdx].y++;
+                const parts = d[COL.CREATED].split('-');
+                if(parts.length >= 3) {
+                    const m = parseInt(parts[1]);
+                    const day = parseInt(parts[2].split(' ')[0]);
+                    if(m >= 1 && m <= 3) {
+                        series[m-1].data[day-1].y++;
+                    }
                 }
             });
+
             const options = {
                 series: series.reverse(),
-                chart: { type: 'heatmap', height: 400, toolbar: { show: true } },
-                colors: ["#3b82f6"],
+                chart: { type: 'heatmap', height: 300, toolbar: {show: true} },
+                colors: ["#2563eb"],
                 plotOptions: { heatmap: { colorScale: { ranges: [
                     { from: 0, to: 0, color: '#f8fafc' },
                     { from: 1, to: 100, color: '#2563eb' }
@@ -339,11 +327,8 @@
             }));
             const options = {
                 series: series,
-                chart: { type: 'heatmap', height: 500, toolbar: { show: true } },
-                plotOptions: { heatmap: { colorScale: { ranges: [
-                    { from: 0, to: 0, color: '#f1f5f9' },
-                    { from: 1, to: 100, color: '#7c3aed' }
-                ]}}},
+                chart: { type: 'heatmap', height: 500, toolbar: {show: true} },
+                plotOptions: { heatmap: { colorScale: { ranges: [{ from: 0, to: 0, color: '#f1f5f9' }, { from: 1, to: 100, color: '#7c3aed' }] } } },
                 dataLabels: { enabled: true, style: { colors: ['#fff'] } }
             };
             updateChart('chart-matrix', options);
