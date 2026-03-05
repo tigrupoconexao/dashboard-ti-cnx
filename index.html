@@ -7,126 +7,124 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; }
         .card { background: #1e293b; border-radius: 12px; padding: 1.5rem; border: 1px solid #334155; }
-        .filter-select { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 0.5rem; width: 100%; color: #f8fafc; font-size: 0.875rem; }
-        .kpi-value { font-size: 2.5rem; font-weight: 800; line-height: 1; }
+        .filter-select { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 0.5rem; width: 100%; color: #f1f5f9; }
+        .kpi-title { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; }
+        .kpi-value { font-size: 2.2rem; font-weight: 900; }
+        /* Scrollbar Dark */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <header class="flex justify-between items-center mb-8 border-b border-slate-700 pb-6">
             <div>
-                <h1 class="text-2xl font-black tracking-tighter text-blue-400">TI GRUPO CONEXÃO</h1>
-                <p class="text-slate-400 text-sm">Jira Service Management Analysis</p>
+                <h1 class="text-2xl font-black text-blue-400">TI GRUPO CONEXÃO</h1>
+                <p class="text-slate-500 text-xs">Helpdesk Performance Dashboard</p>
             </div>
-            <div id="last-update" class="text-[10px] font-mono bg-slate-800 px-3 py-1 rounded border border-slate-700 text-slate-400"></div>
+            <div id="sync-status" class="text-[10px] font-mono text-slate-500 bg-slate-800 px-3 py-1 rounded">AGUARDANDO DADOS...</div>
         </header>
 
-        <div class="card mb-8 grid grid-cols-1 md:grid-cols-5 gap-4 shadow-2xl">
+        <div class="card mb-8 grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Setor</label>
-                <select id="filter-sector" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                <select id="f-sector" class="filter-select" onchange="apply()"><option value="All">Todos</option></select>
             </div>
             <div>
                 <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Status</label>
-                <select id="filter-status" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                <select id="f-status" class="filter-select" onchange="apply()"><option value="All">Todos</option></select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Tipo Item</label>
-                <select id="filter-type" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Tipo</label>
+                <select id="f-type" class="filter-select" onchange="apply()"><option value="All">Todos</option></select>
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Request Type</label>
-                <select id="filter-reqtype" class="filter-select" onchange="applyFilters()"><option value="All">Todos</option></select>
+                <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Solicitação</label>
+                <select id="f-req" class="filter-select" onchange="apply()"><option value="All">Todos</option></select>
             </div>
             <div class="flex items-end">
-                <button onclick="resetFilters()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg transition text-xs uppercase tracking-wider">Limpar Filtros</button>
+                <button onclick="reset()" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-bold text-xs uppercase tracking-tighter transition">Limpar Filtros</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="card border-t-4 border-blue-500">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Total de Chamados</p>
-                <div id="kpi-total" class="kpi-value text-white">0</div>
+            <div class="card border-l-4 border-blue-500 shadow-lg">
+                <p class="kpi-title">Chamados Totais</p>
+                <div id="kpi-total" class="kpi-value">0</div>
             </div>
-            <div class="card border-t-4 border-emerald-500">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Finalizados</p>
-                <div id="kpi-resolved" class="kpi-value text-emerald-400">0</div>
+            <div class="card border-l-4 border-emerald-500 shadow-lg">
+                <p class="kpi-title">Finalizados (Res/Conc)</p>
+                <div id="kpi-finished" class="kpi-value text-emerald-400">0</div>
             </div>
-            <div class="card border-t-4 border-amber-500">
-                <p class="text-xs font-bold text-slate-400 uppercase mb-2">Taxa de Eficiência</p>
+            <div class="card border-l-4 border-amber-500 shadow-lg">
+                <p class="kpi-title">Taxa de Eficiência</p>
                 <div id="kpi-rate" class="kpi-value text-amber-400">0%</div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div class="card">
-                <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest text-center">Evolução de chamados criados</h3>
-                <div id="chart-timeline"></div>
+                <h3 class="text-center text-xs font-bold text-slate-400 uppercase mb-6">Evolução de chamados criados</h3>
+                <div id="chart-ev"></div>
             </div>
             <div class="card">
-                <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest text-center">Top 10 Setores Solicitantes</h3>
+                <h3 class="text-center text-xs font-bold text-slate-400 uppercase mb-6">Top 10 Setores Solicitantes</h3>
                 <div id="chart-sectors"></div>
             </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div class="card">
-                <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest text-center">Prioridade dos Chamados</h3>
-                <div id="chart-priority"></div>
+                <h3 class="text-center text-xs font-bold text-slate-400 uppercase mb-6">Prioridade dos Chamados</h3>
+                <div id="chart-prio"></div>
             </div>
             <div class="card">
-                <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest text-center">Top 10 Request Types</h3>
-                <div id="chart-reqtypes"></div>
+                <h3 class="text-center text-xs font-bold text-slate-400 uppercase mb-6">Top 10 Request Types</h3>
+                <div id="chart-req"></div>
             </div>
         </div>
 
         <div class="card mb-8">
-            <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest text-center">Heatmap Semanal (Concentração de Aberturas)</h3>
-            <div id="chart-heatmap-week"></div>
+            <h3 class="text-center text-xs font-bold text-slate-400 uppercase mb-6">Heatmap Semanal (Concentração de Aberturas)</h3>
+            <div id="chart-week"></div>
         </div>
 
         <div class="card mb-8">
-            <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest text-center">Heatmap Mensal (Volume de Abertura)</h3>
-            <div id="chart-heatmap-month"></div>
+            <h3 class="text-center text-xs font-bold text-slate-400 uppercase mb-6">Heatmap Mensal (Volume de Abertura)</h3>
+            <div id="chart-month"></div>
         </div>
 
-        <div class="card mb-8 overflow-hidden">
-            <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-widest text-center">Matriz: Tipo de Solicitação por Setor Solicitante</h3>
+        <div class="card mb-8">
+            <h3 class="text-center text-xs font-bold text-slate-400 uppercase mb-6">Matriz: Tipo de Solicitação por Setor Solicitante</h3>
             <div id="chart-matrix" class="overflow-x-auto"></div>
         </div>
     </div>
 
     <script>
-        let rawData = [];
+        let raw = [];
         let charts = {};
         const COL = {
-            ITEM_TYPE: 'Tipo de item',
             STATUS: 'Status',
-            PRIORITY: 'Prioridade',
+            PRIO: 'Prioridade',
             CREATED: 'Criado',
-            UPDATED: 'Atualizado(a)',
-            REQ_TYPE: 'Campo personalizado (Request Type)',
+            TYPE: 'Tipo de item',
+            REQ: 'Campo personalizado (Request Type)',
             SECTOR: 'Campo personalizado (Setor Solicitante)'
         };
 
-        function normalize(str) { return str ? str.toString().replace(/^\uFEFF/, '').trim() : ""; }
+        function clean(s) { return s ? s.toString().replace(/^\uFEFF/, '').trim() : ""; }
 
         window.onload = function() {
             Papa.parse("data.csv", {
                 download: true, header: true, skipEmptyLines: true, encoding: "ISO-8859-1",
                 complete: function(r) {
-                    rawData = r.data.filter(row => row[COL.CREATED]).map(row => {
-                        let c = {};
-                        Object.keys(row).forEach(k => { c[normalize(k)] = normalize(row[k]); });
-                        return c;
+                    raw = r.data.map(row => {
+                        let obj = {};
+                        Object.keys(row).forEach(k => { obj[clean(k)] = clean(row[k]); });
+                        return obj;
                     });
                     init();
                 }
@@ -134,83 +132,78 @@
         };
 
         function init() {
-            const getU = (f) => [...new Set(rawData.map(d => d[f]))].filter(v => v).sort();
+            const getU = (f) => [...new Set(raw.map(d => d[f]))].filter(v => v).sort();
             const fill = (id, l) => { 
                 const s = document.getElementById(id); 
                 l.forEach(v => { let o = document.createElement('option'); o.value = v; o.text = v; s.add(o); });
             };
-            fill('filter-sector', getU(COL.SECTOR));
-            fill('filter-status', getU(COL.STATUS));
-            fill('filter-type', getU(COL.ITEM_TYPE));
-            fill('filter-reqtype', getU(COL.REQ_TYPE));
-            document.getElementById('last-update').innerText = "DATA DOS DADOS: MARÇO 2026";
-            applyFilters();
+            fill('f-sector', getU(COL.SECTOR));
+            fill('f-status', getU(COL.STATUS));
+            fill('f-type', getU(COL.TYPE));
+            fill('f-req', getU(COL.REQ));
+            document.getElementById('sync-status').innerText = "SINCRONIZADO COM DATA.CSV";
+            apply();
         }
 
-        function applyFilters() {
-            const fs = document.getElementById('filter-sector').value;
-            const fst = document.getElementById('filter-status').value;
-            const ft = document.getElementById('filter-type').value;
-            const fr = document.getElementById('filter-reqtype').value;
+        function apply() {
+            const fs = document.getElementById('f-sector').value;
+            const fst = document.getElementById('f-status').value;
+            const ft = document.getElementById('f-type').value;
+            const fr = document.getElementById('f-req').value;
 
-            const filtered = rawData.filter(d => 
+            const filtered = raw.filter(d => 
                 (fs === 'All' || d[COL.SECTOR] === fs) &&
                 (fst === 'All' || d[COL.STATUS] === fst) &&
-                (ft === 'All' || d[COL.ITEM_TYPE] === ft) &&
-                (fr === 'All' || d[COL.REQ_TYPE] === fr)
+                (ft === 'All' || d[COL.TYPE] === ft) &&
+                (fr === 'All' || d[COL.REQ] === fr)
             );
             render(filtered);
         }
 
-        function resetFilters() {
+        function reset() {
             document.querySelectorAll('.filter-select').forEach(s => s.value = 'All');
-            applyFilters();
+            apply();
         }
 
         function render(data) {
-            const isFin = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
+            const isF = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
             const total = data.length;
-            const finished = data.filter(d => isFin(d[COL.STATUS])).length;
-            const canceled = data.filter(d => d[COL.STATUS] === "Cancelado").length;
-            const rate = (total - canceled) > 0 ? ((finished / (total - canceled)) * 100).toFixed(1) : 0;
+            const fin = data.filter(d => isF(d[COL.STATUS])).length;
+            const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
+            const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
             document.getElementById('kpi-total').innerText = total;
-            document.getElementById('kpi-resolved').innerText = finished;
+            document.getElementById('kpi-finished').innerText = fin;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Mensal
-            const monthsMap = {"01":"Jan", "02":"Fev", "03":"Mar"};
-            let ev = {"Jan":0, "Fev":0, "Mar":0};
-            data.forEach(d => { 
-                let m = d[COL.CREATED].split('-')[1]; 
-                if(monthsMap[m]) ev[monthsMap[m]]++; 
+            // 1. Evolução Mensal (CORRIGIDO)
+            const evMap = {"01":"Jan/26", "02":"Fev/26", "03":"Mar/26"};
+            let ev = {"Jan/26":0, "Fev/26":0, "Mar/26":0};
+            data.forEach(d => {
+                if(d[COL.CREATED]) {
+                    const m = d[COL.CREATED].substring(5,7); // Pega o 01, 02 ou 03
+                    if(evMap[m]) ev[evMap[m]]++;
+                }
             });
-            updateChart('chart-timeline', {
-                series: [{ name: 'Tickets', data: Object.values(ev) }],
-                chart: { type: 'bar', height: 300, foreColor: '#94a3b8', toolbar: {show:true} },
+            draw('chart-ev', {
+                series: [{ name: 'Abertos', data: Object.values(ev) }],
+                chart: { type: 'bar', height: 280, foreColor: '#64748b', toolbar: {show: true} },
                 colors: ['#3b82f6'],
                 xaxis: { categories: Object.keys(ev) },
-                dataLabels: { enabled: true }
+                dataLabels: { enabled: true, style: { colors: ['#fff'] } }
             });
 
-            // Setores
-            const secData = count(data, COL.SECTOR, 10);
-            updateChart('chart-sectors', barOpts(secData.values, secData.labels, '#10b981', true));
+            // Outros Gráficos
+            const sData = count(data, COL.SECTOR, 10);
+            draw('chart-sectors', bar(sData.values, sData.labels, '#10b981', true));
+            
+            const pData = count(data, COL.PRIO);
+            draw('chart-prio', bar(pData.values, pData.labels, '#f43f5e', false));
 
-            // Prioridade
-            const prioData = count(data, COL.PRIORITY);
-            updateChart('chart-priority', barOpts(prioData.values, prioData.labels, '#f43f5e', false));
+            const rData = count(data, COL.REQ, 10);
+            draw('chart-req', bar(rData.values, rData.labels, '#8b5cf6', true));
 
-            // Request Type
-            const reqData = count(data, COL.REQ_TYPE, 10);
-            updateChart('chart-reqtypes', barOpts(reqData.values, reqData.labels, '#8b5cf6', true));
-
-            // Heatmap Semana
-            renderWeekHeat(data);
-            // Heatmap Mes
-            renderMonthHeat(data);
-            // Matriz
-            renderMat(data);
+            renderHeatmaps(data);
         }
 
         function count(data, f, l) {
@@ -221,10 +214,10 @@
             return { labels: e.map(i => i[0]), values: e.map(i => i[1]) };
         }
 
-        function barOpts(v, l, c, h) {
+        function bar(v, l, c, h) {
             return {
                 series: [{ data: v }],
-                chart: { type: 'bar', height: 300, foreColor: '#94a3b8', toolbar: {show:true} },
+                chart: { type: 'bar', height: 280, foreColor: '#64748b', toolbar: {show:true} },
                 plotOptions: { bar: { horizontal: h, borderRadius: 4 } },
                 colors: [c],
                 xaxis: { categories: l },
@@ -232,61 +225,58 @@
             };
         }
 
-        function renderWeekHeat(data) {
+        function renderHeatmaps(data) {
+            // Heatmap Semanal
             const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
-            let series = days.map(d => ({ name: d, data: Array(24).fill(0).map((_,i)=>({x:i+'h', y:0})) }));
+            let wk = days.map(d => ({ name: d, data: Array(24).fill(0).map((_,i)=>({x:i+'h', y:0})) }));
             data.forEach(d => {
-                const parts = d[COL.CREATED].split(' ');
-                if(parts.length > 1) {
-                    const dt = parts[0].split('-');
-                    const hr = parseInt(parts[1].split(':')[0]);
+                if(d[COL.CREATED] && d[COL.CREATED].includes(' ')) {
+                    const dt = d[COL.CREATED].split(' ')[0].split('-');
+                    const hr = parseInt(d[COL.CREATED].split(' ')[1].split(':')[0]);
                     const day = (new Date(dt[0], dt[1]-1, dt[2]).getDay() + 6) % 7;
-                    series[day].data[hr].y++;
+                    if(wk[day]) wk[day].data[hr].y++;
                 }
             });
-            updateChart('chart-heatmap-week', {
-                series: series.reverse(),
-                chart: { type: 'heatmap', height: 300, foreColor: '#94a3b8' },
-                dataLabels: { enabled: false },
-                colors: ["#3b82f6"]
+            draw('chart-week', {
+                series: wk.reverse(),
+                chart: { type: 'heatmap', height: 300, foreColor: '#64748b' },
+                colors: ["#3b82f6"],
+                dataLabels: { enabled: false }
             });
-        }
 
-        function renderMonthHeat(data) {
-            const months = ["Jan", "Fev", "Mar"];
-            let series = months.map(m => ({ name: m, data: Array(31).fill(0).map((_,i)=>({x:(i+1).toString(), y:0})) }));
+            // Heatmap Mensal (CORRIGIDO)
+            const ms = ["Jan", "Fev", "Mar"];
+            let mth = ms.map(m => ({ name: m, data: Array(31).fill(0).map((_,i)=>({x:(i+1).toString(), y:0})) }));
             data.forEach(d => {
-                const dt = d[COL.CREATED].split('-');
-                if(dt.length > 2) {
-                    const mIdx = parseInt(dt[1]) - 1;
-                    const dayIdx = parseInt(dt[2].split(' ')[0]) - 1;
-                    if(series[mIdx]) series[mIdx].data[dayIdx].y++;
+                if(d[COL.CREATED]) {
+                    const mIdx = parseInt(d[COL.CREATED].substring(5,7)) - 1;
+                    const dIdx = parseInt(d[COL.CREATED].substring(8,10)) - 1;
+                    if(mth[mIdx]) mth[mIdx].data[dIdx].y++;
                 }
             });
-            updateChart('chart-heatmap-month', {
-                series: series.reverse(),
-                chart: { type: 'heatmap', height: 250, foreColor: '#94a3b8' },
-                dataLabels: { enabled: false },
-                colors: ["#10b981"]
+            draw('chart-month', {
+                series: mth.reverse(),
+                chart: { type: 'heatmap', height: 250, foreColor: '#64748b' },
+                colors: ["#10b981"],
+                dataLabels: { enabled: false }
             });
-        }
 
-        function renderMat(data) {
+            // Matriz
             const sec = count(data, COL.SECTOR, 8).labels;
-            const req = count(data, COL.REQ_TYPE, 10).labels;
-            let series = req.map(r => ({
+            const req = count(data, COL.REQ, 10).labels;
+            let mtx = req.map(r => ({
                 name: r,
-                data: sec.map(s => ({ x: s, y: data.filter(d => d[COL.REQ_TYPE] === r && d[COL.SECTOR] === s).length }))
+                data: sec.map(s => ({ x: s, y: data.filter(d => d[COL.REQ] === r && d[COL.SECTOR] === s).length }))
             }));
-            updateChart('chart-matrix', {
-                series: series,
-                chart: { type: 'heatmap', height: 400, foreColor: '#94a3b8' },
-                dataLabels: { enabled: true },
-                colors: ["#8b5cf6"]
+            draw('chart-matrix', {
+                series: mtx,
+                chart: { type: 'heatmap', height: 400, foreColor: '#64748b' },
+                colors: ["#8b5cf6"],
+                dataLabels: { enabled: true, style: { colors: ['#fff'] } }
             });
         }
 
-        function updateChart(id, opts) {
+        function draw(id, opts) {
             if(charts[id]) charts[id].updateOptions(opts);
             else { charts[id] = new ApexCharts(document.querySelector("#"+id), opts); charts[id].render(); }
         }
