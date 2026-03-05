@@ -3,100 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Helpdesk - Grupo Conexão</title>
+    <title>BI Helpdesk - Grupo Conexão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
-        .card { background: white; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 1.5rem; border: 1px solid #e5e7eb; }
-        .filter-select { border: 1px solid #d1d5db; border-radius: 8px; padding: 0.6rem; width: 100%; background: white; cursor: pointer; }
-        .kpi-title { color: #6b7280; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f1f5f9; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 1.5rem; border: 1px solid #e2e8f0; }
+        .filter-select { border: 2px solid #e2e8f0; border-radius: 8px; padding: 0.5rem; width: 100%; background: white; font-weight: 600; color: #1e293b; }
+        .filter-select:focus { border-color: #3b82f6; outline: none; }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="text-slate-800">
 
     <div class="min-h-screen flex flex-col">
-        <header class="bg-slate-900 text-white p-6 shadow-xl">
+        <header class="bg-blue-700 text-white p-6 shadow-xl">
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold">BI Helpdesk | Grupo Conexão</h1>
-                    <p class="text-blue-400 text-sm">Dados Jira Service Management</p>
+                    <h1 class="text-3xl font-extrabold uppercase tracking-tighter">Helpdesk Grupo Conexão</h1>
+                    <p class="text-blue-100 text-sm font-semibold">Análise de Performance Jira Service Management</p>
                 </div>
-                <div id="last-update" class="text-xs bg-slate-800 px-4 py-2 rounded-full border border-slate-700">Carregando dados...</div>
+                <div id="last-update" class="text-xs bg-blue-800 px-4 py-2 rounded-full border border-blue-600 font-mono"></div>
             </div>
         </header>
 
         <main class="container mx-auto p-4 md:p-8 flex-grow">
-            <div class="card mb-8 grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="card mb-8 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 bg-white border-b-4 border-blue-500">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">SETOR SOLICITANTE</label>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Setor</label>
                     <select id="filter-sector" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Setores</option></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">STATUS ATUAL</label>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Status</label>
                     <select id="filter-status" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Status</option></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">TIPO DE ITEM</label>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Tipo de Item</label>
                     <select id="filter-type" class="filter-select" onchange="applyFilters()"><option value="All">Todos os Tipos</option></select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1">REQUEST TYPE</label>
+                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Request Type</label>
                     <select id="filter-reqtype" class="filter-select" onchange="applyFilters()"><option value="All">Todas as Solicitações</option></select>
                 </div>
                 <div class="flex items-end">
-                    <button onclick="resetFilters()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg transition shadow-md">Limpar Filtros</button>
+                    <button onclick="resetFilters()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-2 rounded-lg transition shadow-md uppercase text-xs">Limpar Filtros</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="card border-l-4 border-blue-500">
-                    <p class="kpi-title">Total de Chamados</p>
-                    <h2 id="kpi-total" class="text-4xl font-black text-slate-800">0</h2>
+                <div class="card border-l-8 border-blue-500">
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Total de Chamados</p>
+                    <h2 id="kpi-total" class="text-5xl font-black text-slate-900">0</h2>
                 </div>
-                <div class="card border-l-4 border-green-500">
-                    <p class="kpi-title">Finalizados (Resolvido/Concluído)</p>
-                    <h2 id="kpi-resolved" class="text-4xl font-black text-green-600">0</h2>
+                <div class="card border-l-8 border-green-500">
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Finalizados (Res/Conc)</p>
+                    <h2 id="kpi-resolved" class="text-5xl font-black text-green-600">0</h2>
                 </div>
-                <div class="card border-l-4 border-orange-500">
-                    <p class="kpi-title">Taxa de Eficiência</p>
-                    <h2 id="kpi-rate" class="text-4xl font-black text-orange-600">0%</h2>
+                <div class="card border-l-8 border-amber-500">
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-1">Taxa de Eficiência</p>
+                    <h2 id="kpi-rate" class="text-5xl font-black text-amber-600">0%</h2>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-blue-500 rounded"></span>Volume Temporal: Criados vs Resolvidos</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2">FLUXO: CRIADOS VS FINALIZADOS</h3>
                     <div id="chart-timeline"></div>
                 </div>
                 <div class="card">
-                    <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-orange-500 rounded"></span>Demandas por Prioridade</h3>
-                    <div id="chart-priority"></div>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2">TOP 10 SETORES SOLICITANTES</h3>
+                    <div id="chart-sectors"></div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="card">
-                    <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-green-500 rounded"></span>Top 10 Setores (Volume)</h3>
-                    <div id="chart-sectors"></div>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2">PRIORIDADE DOS CHAMADOS</h3>
+                    <div id="chart-priority"></div>
                 </div>
                 <div class="card">
-                    <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-purple-500 rounded"></span>Top 10 Tipos de Solicitação</h3>
+                    <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2">TOP 10 REQUEST TYPES</h3>
                     <div id="chart-reqtypes"></div>
                 </div>
             </div>
 
-            <div class="card mb-8 overflow-x-auto">
-                <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-red-500 rounded"></span>Heatmap Semanal: Concentração de Aberturas</h3>
-                <div id="chart-heatmap-week" style="min-width: 800px;"></div>
+            <div class="card mb-8">
+                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center">HEATMAP SEMANAL (DIA DA SEMANA VS HORA)</h3>
+                <div id="chart-heatmap-week"></div>
+            </div>
+
+            <div class="card mb-8">
+                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center">HEATMAP MENSAL (DIA DO MÊS VS MÊS)</h3>
+                <div id="chart-heatmap-month"></div>
             </div>
 
             <div class="card mb-8 overflow-x-auto">
-                <h3 class="font-bold mb-4 flex items-center gap-2"><span class="w-2 h-6 bg-yellow-500 rounded"></span>Cruzamento: Solicitação vs Setor</h3>
-                <div id="chart-matrix" style="min-width: 900px;"></div>
+                <h3 class="font-extrabold text-slate-700 mb-4 border-b pb-2 text-center uppercase">Matriz: Request Type por Setor Solicitante</h3>
+                <div id="chart-matrix" style="min-width: 1000px;"></div>
             </div>
         </main>
     </div>
@@ -115,14 +120,26 @@
             SECTOR: 'Campo personalizado (Setor Solicitante)'
         };
 
+        // Função para garantir leitura correta de caracteres especiais
+        function normalizeString(str) {
+            if (!str) return "";
+            return str.toString().replace(/^\uFEFF/, '').trim();
+        }
+
         window.onload = function() {
             Papa.parse("data.csv", {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
-                encoding: "UTF-8",
+                encoding: "ISO-8859-1", // Padrão Excel/Jira no Brasil
                 complete: function(results) {
-                    rawData = results.data;
+                    rawData = results.data.map(row => {
+                        let cleanRow = {};
+                        Object.keys(row).forEach(key => {
+                            cleanRow[normalizeString(key)] = normalizeString(row[key]);
+                        });
+                        return cleanRow;
+                    });
                     initDashboard();
                 }
             });
@@ -131,11 +148,11 @@
         function initDashboard() {
             populateFilters();
             applyFilters();
-            document.getElementById('last-update').innerText = "Sincronizado em: " + moment().format('DD/MM/YYYY HH:mm');
+            document.getElementById('last-update').innerText = "SINCRONIZADO: " + moment().format('DD/MM/YYYY HH:mm');
         }
 
         function populateFilters() {
-            const getUnique = (field) => [...new Set(rawData.map(d => (d[field] || "").trim()))].filter(v => v !== "").sort();
+            const getUnique = (field) => [...new Set(rawData.map(d => d[field]))].filter(v => v).sort();
             fillSelect('filter-sector', getUnique(COL.SECTOR));
             fillSelect('filter-status', getUnique(COL.STATUS));
             fillSelect('filter-type', getUnique(COL.ITEM_TYPE));
@@ -146,8 +163,7 @@
             const select = document.getElementById(id);
             list.forEach(item => {
                 let opt = document.createElement('option');
-                opt.value = item;
-                opt.innerHTML = item;
+                opt.value = item; opt.innerHTML = item;
                 select.appendChild(opt);
             });
         }
@@ -159,12 +175,11 @@
             const fReqType = document.getElementById('filter-reqtype').value;
 
             const filtered = rawData.filter(d => {
-                return (fSector === 'All' || (d[COL.SECTOR] || "").trim() === fSector) &&
-                       (fStatus === 'All' || (d[COL.STATUS] || "").trim() === fStatus) &&
-                       (fType === 'All' || (d[COL.ITEM_TYPE] || "").trim() === fType) &&
-                       (fReqType === 'All' || (d[COL.REQ_TYPE] || "").trim() === fReqType);
+                return (fSector === 'All' || d[COL.SECTOR] === fSector) &&
+                       (fStatus === 'All' || d[COL.STATUS] === fStatus) &&
+                       (fType === 'All' || d[COL.ITEM_TYPE] === fType) &&
+                       (fReqType === 'All' || d[COL.REQ_TYPE] === fReqType);
             });
-
             renderDashboard(filtered);
         }
 
@@ -173,47 +188,51 @@
             applyFilters();
         }
 
-        function renderDashboard(data) {
-            const isResolved = (s) => ["Resolvido", "Concluído"].includes((s || "").trim());
-            
-            const total = data.length;
-            const resolvedCount = data.filter(d => isResolved(d[COL.STATUS])).length;
-            
-            document.getElementById('kpi-total').innerText = total;
-            document.getElementById('kpi-resolved').innerText = resolvedCount;
-            document.getElementById('kpi-rate').innerText = total > 0 ? ((resolvedCount/total)*100).toFixed(1) + "%" : "0%";
-
-            renderTimelineChart(data);
-            renderBarChart('chart-priority', countOccurrences(data, COL.PRIORITY), '#f59e0b', false);
-            renderBarChart('chart-sectors', countOccurrences(data, COL.SECTOR, 10), '#10b981', true);
-            renderBarChart('chart-reqtypes', countOccurrences(data, COL.REQ_TYPE, 10), '#8b5cf6', true);
-            renderWeeklyHeatmap(data);
-            renderMatrixChart(data);
+        function isFinished(status) {
+            const s = (status || "").toLowerCase();
+            return s === "resolvido" || s === "concluído" || s === "concluido";
         }
 
-        function countOccurrences(data, field, limit = null) {
+        function renderDashboard(data) {
+            const total = data.length;
+            const finishedCount = data.filter(d => isFinished(d[COL.STATUS])).length;
+            
+            // Cálculo da Taxa de Eficiência corrigido
+            const rate = total > 0 ? ((finishedCount / total) * 100).toFixed(1) : 0;
+
+            document.getElementById('kpi-total').innerText = total;
+            document.getElementById('kpi-resolved').innerText = finishedCount;
+            document.getElementById('kpi-rate').innerText = rate + "%";
+
+            renderTimelineChart(data);
+            renderBarChart('chart-sectors', countData(data, COL.SECTOR, 10), '#3b82f6', true);
+            renderBarChart('chart-priority', countData(data, COL.PRIORITY), '#ef4444', false);
+            renderBarChart('chart-reqtypes', countData(data, COL.REQ_TYPE, 10), '#8b5cf6', true);
+            renderWeeklyHeatmap(data);
+            renderMonthlyHeatmap(data);
+            renderMatrix(data);
+        }
+
+        function countData(data, field, limit = null) {
             let counts = {};
-            data.forEach(d => { 
-                let val = (d[field] || "Não Informado").trim();
-                counts[val] = (counts[val] || 0) + 1; 
-            });
+            data.forEach(d => { let val = d[field] || "N/A"; counts[val] = (counts[val] || 0) + 1; });
             let entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
             if(limit) entries = entries.slice(0, limit);
             return { labels: entries.map(e => e[0]), values: entries.map(e => e[1]) };
         }
 
         function renderBarChart(id, dataObj, color, horizontal) {
-            const totalLocal = dataObj.values.reduce((a, b) => a + b, 0);
+            const total = dataObj.values.reduce((a,b) => a+b, 0);
             const options = {
-                series: [{ name: 'Chamados', data: dataObj.values }],
-                chart: { type: 'bar', height: 350, toolbar: {show: false} },
+                series: [{ name: 'Total', data: dataObj.values }],
+                chart: { type: 'bar', height: 350, toolbar: { show: true } },
                 plotOptions: { bar: { horizontal: horizontal, borderRadius: 6, dataLabels: { position: 'top' } } },
                 colors: [color],
                 xaxis: { categories: dataObj.labels },
                 dataLabels: {
                     enabled: true,
-                    formatter: (val) => `${val} (${((val/totalLocal)*100).toFixed(1)}%)`,
-                    style: { fontSize: '10px', colors: ['#333'] },
+                    formatter: (val) => `${val} (${((val/total)*100).toFixed(1)}%)`,
+                    style: { fontSize: '11px', fontWeight: 'bold', colors: ['#1e293b'] },
                     offsetY: horizontal ? 0 : -20,
                     offsetX: horizontal ? 10 : 0
                 }
@@ -223,96 +242,112 @@
 
         function renderTimelineChart(data) {
             const createdMap = {};
-            const resolvedMap = {};
-            
+            const finishedMap = {};
             data.forEach(d => {
-                const dayC = moment(d[COL.CREATED]).format('YYYY-MM-DD');
-                if(dayC !== "Invalid date") createdMap[dayC] = (createdMap[dayC] || 0) + 1;
+                const dc = moment(d[COL.CREATED]).format('YYYY-MM-DD');
+                if(dc !== "Invalid date") createdMap[dc] = (createdMap[dc] || 0) + 1;
                 
-                if(["Resolvido", "Concluído"].includes((d[COL.STATUS] || "").trim())) {
-                    const dayR = moment(d[COL.UPDATED]).format('YYYY-MM-DD');
-                    if(dayR !== "Invalid date") resolvedMap[dayR] = (resolvedMap[dayR] || 0) + 1;
+                if(isFinished(d[COL.STATUS])) {
+                    const df = moment(d[COL.UPDATED]).format('YYYY-MM-DD');
+                    if(df !== "Invalid date") finishedMap[df] = (finishedMap[df] || 0) + 1;
                 }
             });
-
-            const allDates = [...new Set([...Object.keys(createdMap), ...Object.keys(resolvedMap)])].sort();
-            
+            const allDates = [...new Set([...Object.keys(createdMap), ...Object.keys(finishedMap)])].sort();
             const options = {
                 series: [
-                    { name: 'Chamados Abertos', data: allDates.map(date => createdMap[date] || 0) },
-                    { name: 'Chamados Finalizados', data: allDates.map(date => resolvedMap[date] || 0) }
+                    { name: 'Criados', data: allDates.map(d => createdMap[d] || 0) },
+                    { name: 'Finalizados (Res/Conc)', data: allDates.map(d => finishedMap[d] || 0) }
                 ],
-                chart: { type: 'area', height: 350, zoom: { enabled: true }, toolbar: {show: true} },
-                stroke: { curve: 'smooth', width: 3 },
-                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1 } },
+                chart: { type: 'area', height: 350, toolbar: { show: true } },
                 colors: ['#3b82f6', '#10b981'],
-                xaxis: { categories: allDates, type: 'datetime', labels: { format: 'dd/MM' } },
-                legend: { position: 'top' }
+                stroke: { curve: 'smooth', width: 3 },
+                fill: { type: 'gradient', gradient: { opacityFrom: 0.5, opacityTo: 0.1 } },
+                xaxis: { categories: allDates, type: 'datetime' },
+                dataLabels: { enabled: false }
             };
             updateChart('chart-timeline', options);
         }
 
         function renderWeeklyHeatmap(data) {
             const days = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
-            const matrix = days.map(day => ({ name: day, data: Array(24).fill(0).map((_, i) => ({ x: i + "h", y: 0 })) }));
-
+            const series = days.map((day, idx) => ({
+                name: day,
+                data: Array(24).fill(0).map((_, h) => ({ x: h+'h', y: 0 }))
+            }));
             data.forEach(d => {
                 const date = moment(d[COL.CREATED]);
                 if(date.isValid()) {
-                    const dayIdx = (date.isoWeekday() - 1);
+                    const dIdx = (date.isoWeekday() - 1);
                     const hour = date.hour();
-                    if(dayIdx >= 0) matrix[dayIdx].data[hour].y++;
+                    if(series[dIdx]) series[dIdx].data[hour].y++;
                 }
             });
-
             const options = {
-                series: matrix.reverse(),
-                chart: { type: 'heatmap', height: 350, toolbar: {show:false} },
-                dataLabels: { enabled: false },
+                series: series.reverse(),
+                chart: { type: 'heatmap', height: 350, toolbar: { show: true } },
+                colors: ["#f59e0b"],
                 plotOptions: { heatmap: { colorScale: { ranges: [
-                    { from: 0, to: 0, color: '#f3f4f6', name: 'Nenhum' },
-                    { from: 1, to: 2, color: '#fed7aa', name: 'Baixo' },
-                    { from: 3, to: 5, color: '#fb923c', name: 'Médio' },
-                    { from: 6, to: 100, color: '#ef4444', name: 'Alto' }
+                    { from: 0, to: 0, color: '#f8fafc' },
+                    { from: 1, to: 5, color: '#fbbf24' },
+                    { from: 6, to: 100, color: '#ea580c' }
                 ]}}},
-                title: { text: 'Concentração de Abertura por Dia e Hora' }
+                dataLabels: { enabled: false }
             };
             updateChart('chart-heatmap-week', options);
         }
 
-        function renderMatrixChart(data) {
-            const topSectors = countOccurrences(data, COL.SECTOR, 12).labels;
-            const topReqs = countOccurrences(data, COL.REQ_TYPE, 15).labels;
+        function renderMonthlyHeatmap(data) {
+            const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+            const series = months.map(m => ({
+                name: m,
+                data: Array(31).fill(0).map((_, i) => ({ x: (i+1).toString(), y: 0 }))
+            }));
+            data.forEach(d => {
+                const date = moment(d[COL.CREATED]);
+                if(date.isValid()) {
+                    const mIdx = date.month();
+                    const dIdx = date.date() - 1;
+                    series[mIdx].data[dIdx].y++;
+                }
+            });
+            const options = {
+                series: series.reverse(),
+                chart: { type: 'heatmap', height: 400, toolbar: { show: true } },
+                colors: ["#3b82f6"],
+                plotOptions: { heatmap: { colorScale: { ranges: [
+                    { from: 0, to: 0, color: '#f8fafc' },
+                    { from: 1, to: 100, color: '#2563eb' }
+                ]}}},
+                dataLabels: { enabled: false }
+            };
+            updateChart('chart-heatmap-month', options);
+        }
 
+        function renderMatrix(data) {
+            const topSectors = countData(data, COL.SECTOR, 12).labels;
+            const topReqs = countData(data, COL.REQ_TYPE, 15).labels;
             const series = topReqs.map(req => ({
                 name: req,
-                data: topSectors.map(sec => {
-                    const count = data.filter(d => (d[COL.REQ_TYPE] || "").trim() === req && (d[COL.SECTOR] || "").trim() === sec).length;
-                    return { x: sec, y: count };
-                })
+                data: topSectors.map(sec => ({
+                    x: sec,
+                    y: data.filter(d => d[COL.REQ_TYPE] === req && d[COL.SECTOR] === sec).length
+                }))
             }));
-
             const options = {
                 series: series,
-                chart: { type: 'heatmap', height: 500 },
-                dataLabels: { enabled: true, style: { colors: ['#fff'] } },
-                colors: ["#6366f1"],
-                plotOptions: { heatmap: { shadeIntensity: 0.5, colorScale: { ranges: [
-                    { from: 0, to: 0, color: '#f8fafc' },
-                    { from: 1, to: 100, color: '#4f46e5' }
+                chart: { type: 'heatmap', height: 500, toolbar: { show: true } },
+                plotOptions: { heatmap: { colorScale: { ranges: [
+                    { from: 0, to: 0, color: '#f1f5f9' },
+                    { from: 1, to: 100, color: '#7c3aed' }
                 ]}}},
-                xaxis: { labels: { rotate: -45 } }
+                dataLabels: { enabled: true, style: { colors: ['#fff'] } }
             };
             updateChart('chart-matrix', options);
         }
 
         function updateChart(id, options) {
-            if (charts[id]) {
-                charts[id].updateOptions(options);
-            } else {
-                charts[id] = new ApexCharts(document.querySelector("#" + id), options);
-                charts[id].render();
-            }
+            if (charts[id]) { charts[id].updateOptions(options); } 
+            else { charts[id] = new ApexCharts(document.querySelector("#" + id), options); charts[id].render(); }
         }
     </script>
 </body>
