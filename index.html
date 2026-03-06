@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Helpdesk TI | Grupo Conexão</title>
+    <title>BI Helpdesk | Grupo Conexão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -52,13 +52,7 @@
             gap: 8px;
         }
 
-        .panel-header::before {
-            content: "";
-            width: 2px;
-            height: 12px;
-            background: var(--blue);
-        }
-
+        .panel-header::before { content: ""; width: 2px; height: 12px; background: var(--blue); }
         .panel-content { padding: 12px; flex-grow: 1; }
 
         .stat-panel { border-left: 4px solid var(--blue); }
@@ -74,6 +68,11 @@
             border-radius: 2px;
             outline: none;
         }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8);
+            cursor: pointer;
+        }
 
         header { background: #0d1b2a; border-bottom: 1px solid var(--border-panel); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -88,7 +87,7 @@
                 <div class="bg-white p-1 rounded-sm">
                     <img src="logo.png" style="height:30px;" onerror="this.src='https://via.placeholder.com/100x30/FFFFFF/0d1b2a?text=LOGOMARCA'">
                 </div>
-                <div class="text-[16px] font-bold tracking-tight">TI GRUPO CONEXÃO / <span class="text-[#778da9]">HELPDESK ANALYTICS</span></div>
+                <div class="text-[14px] font-bold tracking-tight">TI GRUPO CONEXÃO / <span class="text-[#778da9]">HELPDESK ANALYTICS</span></div>
             </div>
             <div class="text-[10px] font-mono text-right">
                 <span class="text-[#778da9]">SINCRONIZAÇÃO: </span>
@@ -99,11 +98,19 @@
 
     <div class="max-w-[1800px] mx-auto px-4">
         
-        <div class="flex flex-wrap gap-2 mb-6 bg-[#1b263b] p-3 border border-[#415a77]">
+        <div class="flex flex-wrap items-center gap-3 mb-6 bg-[#1b263b] p-3 border border-[#415a77]">
             <select id="f-sector" class="g-select" onchange="apply()"><option value="All">Setor: Todos</option></select>
             <select id="f-status" class="g-select" onchange="apply()"><option value="All">Status: Todos</option></select>
             <select id="f-type" class="g-select" onchange="apply()"><option value="All">Tipo: Todos</option></select>
             <select id="f-req" class="g-select" onchange="apply()"><option value="All">Solicitação: Todas</option></select>
+            
+            <div class="flex items-center gap-2 ml-auto">
+                <label class="text-[10px] font-bold text-[#778da9] uppercase">Período:</label>
+                <input type="date" id="f-start" class="g-select w-auto" onchange="apply()">
+                <span class="text-[#778da9] text-[10px] uppercase">até</span>
+                <input type="date" id="f-end" class="g-select w-auto" onchange="apply()">
+            </div>
+            
             <button onclick="reset()" class="g-select border-none bg-[#415a77] hover:bg-[#778da9] font-bold px-4 text-white transition-colors uppercase">Limpar</button>
         </div>
 
@@ -136,39 +143,39 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
             <div class="grafana-panel lg:col-span-8">
-                <div class="panel-header">Evolução Mensal de Chamados (Time Series)</div>
+                <div class="panel-header">Evolução Mensal (Série Temporal)</div>
                 <div class="panel-content"><div id="chart-ev"></div></div>
             </div>
             <div class="grafana-panel lg:col-span-4">
-                <div class="panel-header">Prioridade</div>
+                <div class="panel-header">Distribuição por Prioridade</div>
                 <div class="panel-content"><div id="chart-prio"></div></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             <div class="grafana-panel">
-                <div class="panel-header">Top 10 Setores Solicitantes</div>
+                <div class="panel-header">Top 10 Setores</div>
                 <div class="panel-content"><div id="chart-sectors"></div></div>
             </div>
             <div class="grafana-panel">
-                <div class="panel-header">Top 10 Tipos de Solicitação</div>
+                <div class="panel-header">Top 10 Solicitações</div>
                 <div class="panel-content"><div id="chart-req"></div></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             <div class="grafana-panel">
-                <div class="panel-header">Heatmap Semanal</div>
+                <div class="panel-header">Concentração Semanal</div>
                 <div class="panel-content"><div id="chart-week"></div></div>
             </div>
             <div class="grafana-panel">
-                <div class="panel-header">Heatmap Mensal</div>
+                <div class="panel-header">Volume Diário Mensal</div>
                 <div class="panel-content"><div id="chart-month"></div></div>
             </div>
         </div>
 
         <div class="grafana-panel">
-            <div class="panel-header">Matriz: Solicitação por Setor</div>
+            <div class="panel-header">Matriz: Solicitação vs Setor</div>
             <div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div>
         </div>
     </div>
@@ -211,16 +218,38 @@
         }
 
         function apply() {
-            const f = raw.filter(d => 
-                (document.getElementById('f-sector').value === 'All' || d[COL.SECTOR] === document.getElementById('f-sector').value) &&
-                (document.getElementById('f-status').value === 'All' || d[COL.STATUS] === document.getElementById('f-status').value) &&
-                (document.getElementById('f-type').value === 'All' || d[COL.TYPE] === document.getElementById('f-type').value) &&
-                (document.getElementById('f-req').value === 'All' || d[COL.REQ] === document.getElementById('f-req').value)
-            );
-            render(f);
+            const fs = document.getElementById('f-sector').value;
+            const fst = document.getElementById('f-status').value;
+            const ft = document.getElementById('f-type').value;
+            const fr = document.getElementById('f-req').value;
+            const dateStart = document.getElementById('f-start').value;
+            const dateEnd = document.getElementById('f-end').value;
+
+            const filtered = raw.filter(d => {
+                const p = parseDate(d[COL.CREATED]);
+                if(!p) return false;
+
+                const matchSelects = (fs === 'All' || d[COL.SECTOR] === fs) &&
+                                   (fst === 'All' || d[COL.STATUS] === fst) &&
+                                   (ft === 'All' || d[COL.TYPE] === ft) &&
+                                   (fr === 'All' || d[COL.REQ] === fr);
+
+                const dDate = new Date(p.y, p.m - 1, p.d);
+                const sDate = dateStart ? new Date(dateStart + "T00:00:00") : null;
+                const eDate = dateEnd ? new Date(dateEnd + "T23:59:59") : null;
+                const matchDate = (!sDate || dDate >= sDate) && (!eDate || dDate <= eDate);
+
+                return matchSelects && matchDate;
+            });
+            render(filtered);
         }
 
-        function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); apply(); }
+        function reset() { 
+            document.querySelectorAll('.g-select').forEach(s => s.value='All');
+            document.getElementById('f-start').value = "";
+            document.getElementById('f-end').value = "";
+            apply(); 
+        }
 
         function render(data) {
             const isF = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
@@ -234,19 +263,18 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Estilo Grafana (Área Suave)
+            // Evolução
             const months = {"01/26": "Jan", "02/26": "Fev", "03/26": "Mar"};
             let ev = {"01/26":0, "02/26":0, "03/26":0};
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p && ev.hasOwnProperty(p.key)) ev[p.key]++; });
             
             draw('chart-ev', {
                 series: [{ name: 'Abertos', data: Object.values(ev) }],
-                chart: { type: 'area', height: 280, sparkline: { enabled: false }, toolbar: { show: false } },
+                chart: { type: 'area', height: 280, toolbar: { show: false } },
                 stroke: { curve: 'smooth', width: 2 },
                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1 } },
                 colors: ['#778da9'],
-                xaxis: { categories: Object.keys(ev).map(k => months[k]), axisBorder: { show: false } },
-                yaxis: { show: true },
+                xaxis: { categories: Object.keys(ev).map(k => months[k]) },
                 grid: { borderColor: '#1b263b', strokeDashArray: 4 }
             });
 
@@ -304,5 +332,3 @@
     </script>
 </body>
 </html>
-
-
