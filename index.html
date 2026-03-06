@@ -3,168 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk 3D | Grupo Conexão</title>
+    <title>TI Helpdesk | Grafana Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Paleta: #0D1B2A (Navy), #1B263B, #415A77, #778DA9, #E0E1DD (Light) */
+        /* Estilos Baseados no Grafana com a sua paleta */
+        :root {
+            --bg-page: #0D1B2A;
+            --panel-bg: #1B263B;
+            --border: #415A77;
+            --text-main: #E0E1DD;
+            --text-dim: #778DA9;
+            --accent-blue: #415A77;
+            --accent-green: #56a64b;
+            --accent-red: #e02f44;
+            --accent-orange: #f29527;
+        }
+
         body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #E0E1DD; 
-            color: #0D1B2A;
-            perspective: 1200px;
+            background-color: var(--bg-page); 
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
         }
 
-        .card-3d { 
-            background: #FFFFFF; 
-            border-radius: 16px; 
-            padding: 1.5rem; 
-            border: 1px solid #778DA9;
-            box-shadow: 0 10px 20px rgba(13, 27, 42, 0.1), 0 4px 6px rgba(13, 27, 42, 0.05);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform-style: preserve-3d;
+        /* Painel Estilo Grafana */
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid rgba(119, 141, 169, 0.2);
+            border-radius: 2px;
+            padding: 1rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
-        .card-3d:hover {
-            transform: translateY(-10px) rotateX(2deg);
-            box-shadow: 0 20px 40px rgba(13, 27, 42, 0.2), 8px 8px 0px #415A77;
+        .panel-header {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-3d {
-            background-color: #415A77;
-            color: #E0E1DD;
-            border-bottom: 5px solid #0D1B2A;
-            transition: all 0.1s ease;
-        }
-        .btn-3d:active {
-            transform: translateY(3px);
-            border-bottom: 2px solid #0D1B2A;
+        .panel-header::before {
+            content: "";
+            width: 3px;
+            height: 12px;
+            background: var(--accent-blue);
+            border-radius: 1px;
         }
 
-        header { 
-            background: linear-gradient(135deg, #0D1B2A 0%, #1B263B 100%); 
-            color: #E0E1DD; 
-            box-shadow: 0 10px 30px rgba(13, 27, 42, 0.4); 
+        .kpi-stat {
+            border-left: 4px solid var(--accent-blue);
+            padding-left: 12px;
         }
 
-        .logo-container img {
-            max-height: 60px;
-            filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.2));
+        .kpi-value {
+            font-size: 2.4rem;
+            font-weight: 400;
+            line-height: 1;
         }
 
-        .kpi-title { font-size: 0.7rem; font-weight: 800; color: #415A77; text-transform: uppercase; letter-spacing: 0.1em; }
-        .kpi-value { font-size: 2.6rem; font-weight: 900; line-height: 1; color: #0D1B2A; }
-
+        /* Filtros Slim */
         .filter-select { 
-            background: #fcfcfc; 
-            border: 2px solid #778DA9; 
-            border-radius: 10px; 
-            padding: 0.6rem; 
+            background: #0D1B2A; 
+            border: 1px solid var(--border); 
+            border-radius: 2px; 
+            padding: 0.4rem; 
             width: 100%; 
-            font-weight: 600;
-            color: #0D1B2A;
+            color: var(--text-main);
+            font-size: 0.75rem;
+            outline: none;
         }
+
+        header {
+            background: #0D1B2A;
+            border-bottom: 1px solid rgba(119, 141, 169, 0.2);
+        }
+
+        .logo-box img { max-height: 35px; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); }
+        ::-webkit-scrollbar-track { background: var(--bg-page); }
+
+        .apexcharts-tooltip { color: #000 !important; }
     </style>
 </head>
-<body class="pb-20">
+<body class="pb-8">
 
-    <header class="p-6 mb-12">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-6 text-center md:text-left">
-                <div class="logo-container bg-white p-2 rounded-xl shadow-lg">
-                    <img src="logo.png" alt="Grupo Conexão" onerror="this.src='https://via.placeholder.com/150x50/FFFFFF/0D1B2A?text=LOGO+CONEX%C3%83O'">
+    <header class="p-4 mb-6 sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-6">
+                <div class="logo-box bg-white p-1 rounded-sm">
+                    <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/120x40/FFFFFF/0D1B2A?text=LOGOMARCA'">
                 </div>
+                <div class="hidden md:block h-6 w-[1px] bg-slate-700"></div>
                 <div>
-                    <h1 class="text-3xl font-black tracking-tight uppercase leading-none mb-1">Helpdesk Analytics</h1>
-                    <p class="text-[#778DA9] text-xs font-bold tracking-widest uppercase">TI Grupo Conexão</p>
+                    <h1 class="text-sm font-bold tracking-wider uppercase">Grupo Conexão / <span class="text-[#778DA9]">Helpdesk Dashboard</span></h1>
                 </div>
             </div>
-            <div id="last-update" class="text-[11px] font-mono bg-[#E0E1DD] text-[#0D1B2A] px-5 py-3 rounded-xl border-b-4 border-[#778DA9] shadow-inner font-bold flex flex-col items-center md:items-end">
-                <span class="text-[#415A77] text-[9px] uppercase tracking-tighter">Sincronização de dados</span>
-                <span id="sync-time">Carregando...</span>
+            <div id="sync-info" class="text-[10px] font-mono text-right flex flex-col">
+                <span class="text-slate-500">LAST DATABASE SYNC</span>
+                <span id="sync-time" class="text-[#E0E1DD] font-bold">---</span>
             </div>
         </div>
     </header>
 
-    <div class="max-w-7xl mx-auto px-6">
-        <div class="card-3d mb-12 grid grid-cols-1 md:grid-cols-5 gap-6">
-            <div>
-                <label class="block text-[10px] font-black text-[#415A77] mb-2 uppercase">Setor</label>
-                <select id="f-sector" class="filter-select" onchange="apply()"><option value="All">Todos os Setores</option></select>
-            </div>
-            <div>
-                <label class="block text-[10px] font-black text-[#415A77] mb-2 uppercase">Status</label>
-                <select id="f-status" class="filter-select" onchange="apply()"><option value="All">Todos os Status</option></select>
-            </div>
-            <div>
-                <label class="block text-[10px] font-black text-[#415A77] mb-2 uppercase">Tipo Item</label>
-                <select id="f-type" class="filter-select" onchange="apply()"><option value="All">Todos os Tipos</option></select>
-            </div>
-            <div>
-                <label class="block text-[10px] font-black text-[#415A77] mb-2 uppercase">Solicitação</label>
-                <select id="f-req" class="filter-select" onchange="apply()"><option value="All">Todas</option></select>
-            </div>
-            <div class="flex items-end">
-                <button onclick="reset()" class="w-full btn-3d font-black py-3 rounded-xl text-xs uppercase tracking-widest shadow-lg">Resetar Filtros</button>
-            </div>
+    <div class="max-w-[1600px] mx-auto px-4">
+        
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+            <select id="f-sector" class="filter-select" onchange="apply()"><option value="All">Setor: Todos</option></select>
+            <select id="f-status" class="filter-select" onchange="apply()"><option value="All">Status: Todos</option></select>
+            <select id="f-type" class="filter-select" onchange="apply()"><option value="All">Tipo: Todos</option></select>
+            <select id="f-req" class="filter-select" onchange="apply()"><option value="All">Solicitação: Todas</option></select>
+            <button onclick="reset()" class="bg-[#415A77] hover:bg-[#778DA9] text-white text-[10px] font-bold py-2 rounded-sm uppercase transition-colors">Limpar Filtros</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            <div class="card-3d border-l-8 border-[#0D1B2A]">
-                <p class="kpi-title">Chamados Totais</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="panel kpi-stat !border-l-[#415A77]">
+                <div class="panel-header">Chamados Totais</div>
                 <div id="kpi-total" class="kpi-value">0</div>
             </div>
-            <div class="card-3d border-l-8 border-[#415A77]">
-                <p class="kpi-title">Finalizados</p>
-                <div id="kpi-resolved" class="kpi-value">0</div>
+            <div class="panel kpi-stat !border-l-[#56a64b]">
+                <div class="panel-header">Finalizados</div>
+                <div id="kpi-resolved" class="kpi-value text-[#56a64b]">0</div>
             </div>
-            <div class="card-3d border-l-8 border-[#778DA9]">
-                <p class="kpi-title">Cancelados</p>
-                <div id="kpi-canceled" class="kpi-value">0</div>
+            <div class="panel kpi-stat !border-l-[#e02f44]">
+                <div class="panel-header">Cancelados</div>
+                <div id="kpi-canceled" class="kpi-value text-[#e02f44]">0</div>
             </div>
-            <div class="card-3d border-l-8 border-[#0D1B2A]">
-                <p class="kpi-title">Eficiência</p>
-                <div id="kpi-rate" class="kpi-value text-[#415A77]">0%</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-            <div class="card-3d">
-                <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Evolução de chamados criados</h3>
-                <div id="chart-ev"></div>
-            </div>
-            <div class="card-3d">
-                <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Top 10 Setores Solicitantes</h3>
-                <div id="chart-sectors"></div>
+            <div class="panel kpi-stat !border-l-[#f29527]">
+                <div class="panel-header">Taxa de Eficiência</div>
+                <div id="kpi-rate" class="kpi-value text-[#f29527]">0%</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
-            <div class="card-3d">
-                <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Prioridade dos Chamados</h3>
-                <div id="chart-prio"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+            <div class="panel lg:col-span-8">
+                <div class="panel-header">Evolução de chamados criados</div>
+                <div id="chart-ev" class="flex-grow"></div>
             </div>
-            <div class="card-3d">
-                <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Top 10 Request Types</h3>
-                <div id="chart-req"></div>
+            <div class="panel lg:col-span-4">
+                <div class="panel-header">Prioridade dos Chamados</div>
+                <div id="chart-prio" class="flex-grow"></div>
             </div>
         </div>
 
-        <div class="card-3d mb-10">
-            <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Heatmap Semanal (Volume de Abertura)</h3>
-            <div id="chart-week"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+            <div class="panel lg:col-span-6">
+                <div class="panel-header">Top 10 Setores Solicitantes</div>
+                <div id="chart-sectors" class="flex-grow"></div>
+            </div>
+            <div class="panel lg:col-span-6">
+                <div class="panel-header">Top 10 Request Types</div>
+                <div id="chart-req" class="flex-grow"></div>
+            </div>
         </div>
 
-        <div class="card-3d mb-10">
-            <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Heatmap Mensal (Volume de Abertura)</h3>
-            <div id="chart-month"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div class="panel">
+                <div class="panel-header">Heatmap Semanal (Concentração de Demanda)</div>
+                <div id="chart-week"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">Heatmap Mensal (Volume de Abertura)</div>
+                <div id="chart-month"></div>
+            </div>
         </div>
 
-        <div class="card-3d mb-10 overflow-hidden">
-            <h3 class="text-xs font-black text-[#415A77] uppercase mb-6 text-center tracking-widest">Matriz: Tipo de Solicitação por Setor Solicitante</h3>
+        <div class="panel mb-4">
+            <div class="panel-header">Matriz: Tipo de Solicitação por Setor Solicitante</div>
             <div id="chart-matrix" class="overflow-x-auto"></div>
         </div>
     </div>
@@ -178,22 +196,37 @@
             SECTOR: 'Campo personalizado (Setor Solicitante)'
         };
 
-        function clean(s) { return s ? s.toString().replace(/^\uFEFF/, '').trim() : ""; }
+        const globalOptions = {
+            chart: { background: 'transparent', foreColor: '#778DA9', toolbar: { show: true } },
+            theme: { mode: 'dark' },
+            grid: { borderColor: '#1B263B' }
+        };
+
+        function clean(s) { 
+            if(!s) return "";
+            // Remove BOM, espaços extras e trata encodings comuns
+            return s.toString().replace(/^\uFEFF/, '').trim()
+                    .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã/g, 'í')
+                    .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã§/g, 'ç')
+                    .replace(/Ã£/g, 'ã').replace(/Ãµ/g, 'õ').replace(/Ãª/g, 'ê')
+                    .replace(/Ã­/g, 'í');
+        }
 
         function parseJiraDate(dateStr) {
             if (!dateStr) return null;
-            let day, month, year, hour;
-            if (dateStr.includes('/')) {
-                let [dpart, tpart] = dateStr.split(' ');
+            let dpart = dateStr.split(' ')[0];
+            let tpart = dateStr.split(' ')[1] || "00:00";
+            let day, month, year;
+
+            if (dpart.includes('/')) {
                 [day, month, year] = dpart.split('/');
-                hour = tpart ? tpart.split(':')[0] : "00";
-            } else if (dateStr.includes('-')) {
-                let [dpart, tpart] = dateStr.split(' ');
+            } else if (dpart.includes('-')) {
                 [year, month, day] = dpart.split('-');
-                hour = tpart ? tpart.split(':')[0] : "00";
             }
+
             return { 
-                day: parseInt(day), month: parseInt(month), year: parseInt(year), hour: parseInt(hour),
+                day: parseInt(day), month: parseInt(month), year: parseInt(year),
+                hour: parseInt(tpart.split(':')[0]),
                 monthKey: `${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}` 
             };
         }
@@ -214,19 +247,16 @@
 
         function init() {
             const getU = (f) => [...new Set(raw.map(d => d[f]))].filter(v => v).sort();
-            const fill = (id, l) => { 
+            const fill = (id, l, prefix) => { 
                 const s = document.getElementById(id); 
-                l.forEach(v => { let o = document.createElement('option'); o.value = v; o.text = v; s.add(o); });
+                l.forEach(v => { let o = document.createElement('option'); o.value = v; o.text = `${prefix}: ${v}`; s.add(o); });
             };
-            fill('f-sector', getU(COL.SECTOR));
-            fill('f-status', getU(COL.STATUS));
-            fill('f-type', getU(COL.TYPE));
-            fill('f-req', getU(COL.REQ));
+            fill('f-sector', getU(COL.SECTOR), "Setor");
+            fill('f-status', getU(COL.STATUS), "Status");
+            fill('f-type', getU(COL.TYPE), "Tipo");
+            fill('f-req', getU(COL.REQ), "Solicit.");
             
-            // Ajuste da exibição da data de sincronização
-            const now = moment().format('DD/MM/YYYY [às] HH:mm');
-            document.getElementById('sync-time').innerText = now;
-            
+            document.getElementById('sync-time').innerText = moment().format('DD/MM/YYYY [às] HH:mm:ss');
             apply();
         }
 
@@ -251,8 +281,8 @@
         }
 
         function isF(s) {
-            const status = (s || "").toLowerCase();
-            return status === "resolvido" || status === "concluído" || status === "concluido";
+            const st = (s || "").toLowerCase();
+            return st.includes("resolvido") || st.includes("concluido") || st.includes("concluído");
         }
 
         function render(data) {
@@ -266,28 +296,39 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            const evOrder = ["01/26", "02/26", "03/26"];
-            let evCount = {"01/26":0, "02/26":0, "03/26":0};
+            // Evolução
+            const evMonths = ["01/26", "02/26", "03/26"];
+            const evNames = {"01/26":"Jan/26", "02/26":"Fev/26", "03/26":"Mar/26"};
+            let evData = {"01/26":0, "02/26":0, "03/26":0};
             data.forEach(d => {
                 let p = parseJiraDate(d[COL.CREATED]);
-                if(p && evCount.hasOwnProperty(p.monthKey)) evCount[p.monthKey]++;
+                if(p && evData.hasOwnProperty(p.monthKey)) evData[p.monthKey]++;
             });
 
             draw('chart-ev', {
-                series: [{ name: 'Abertos', data: evOrder.map(k => evCount[k]) }],
-                chart: { type: 'bar', height: 280, toolbar: {show:true} },
-                colors: ['#1B263B'],
-                xaxis: { categories: ["Jan/26", "Fev/26", "Mar/26"] },
-                plotOptions: { bar: { borderRadius: 10, columnWidth: '35%' } },
-                dataLabels: { enabled: true, style: { colors: ['#0D1B2A'] }, offsetY: -20 }
+                series: [{ name: 'Abertos', data: evMonths.map(m => evData[m]) }],
+                chart: { ...globalOptions.chart, type: 'bar', height: 250 },
+                colors: ['#3274d9'],
+                xaxis: { categories: evMonths.map(m => evNames[m]) },
+                plotOptions: { bar: { columnWidth: '45%', borderRadius: 2 } }
             });
 
+            // Prioridade
+            const pCounts = count(data, COL.PRIO);
+            draw('chart-prio', {
+                series: pCounts.values,
+                chart: { ...globalOptions.chart, type: 'donut', height: 280 },
+                labels: pCounts.labels,
+                colors: ['#3274d9', '#56a64b', '#f29527', '#e02f44', '#778DA9'],
+                stroke: { show: false },
+                legend: { position: 'bottom' }
+            });
+
+            // Setores & Request Type
             const sData = count(data, COL.SECTOR, 10);
-            draw('chart-sectors', bar(sData.values, sData.labels, '#415A77', true));
-            const pData = count(data, COL.PRIO);
-            draw('chart-prio', bar(pData.values, pData.labels, '#0D1B2A', false));
+            draw('chart-sectors', barOpts(sData.values, sData.labels, '#56a64b', true));
             const rData = count(data, COL.REQ, 10);
-            draw('chart-req', bar(rData.values, rData.labels, '#778DA9', true));
+            draw('chart-req', barOpts(rData.values, rData.labels, '#3274d9', true));
 
             renderHeatmaps(data);
         }
@@ -300,15 +341,14 @@
             return { labels: e.map(i => i[0]), values: e.map(i => i[1]) };
         }
 
-        function bar(v, l, c, h) {
-            const total = v.reduce((a,b) => a+b, 0);
+        function barOpts(v, l, c, h) {
             return {
                 series: [{ name: 'Tickets', data: v }],
-                chart: { type: 'bar', height: 300, toolbar: {show:true} },
-                plotOptions: { bar: { horizontal: h, borderRadius: 6, dataLabels: { position: 'top' } } },
+                chart: { ...globalOptions.chart, type: 'bar', height: 250 },
                 colors: [c],
+                plotOptions: { bar: { horizontal: h, borderRadius: 2, dataLabels: { position: 'top' } } },
                 xaxis: { categories: l },
-                dataLabels: { enabled: true, formatter: (val) => `${val} (${((val/total)*100).toFixed(0)}%)` }
+                dataLabels: { enabled: true, style: { fontSize: '9px' } }
             };
         }
 
@@ -319,14 +359,14 @@
                 let p = parseJiraDate(d[COL.CREATED]);
                 if(p) {
                     let dObj = new Date(p.year, p.month-1, p.day);
-                    let dayIdx = (dObj.getDay() + 6) % 7;
-                    if(wk[dayIdx]) wk[dayIdx].data[p.hour].y++;
+                    let dIdx = (dObj.getDay() + 6) % 7;
+                    if(wk[dIdx]) wk[dIdx].data[p.hour].y++;
                 }
             });
             draw('chart-week', {
                 series: wk.reverse(),
-                chart: { type: 'heatmap', height: 300 },
-                colors: ["#1B263B"],
+                chart: { ...globalOptions.chart, type: 'heatmap', height: 250 },
+                colors: ["#3274d9"],
                 dataLabels: { enabled: false }
             });
 
@@ -338,8 +378,8 @@
             });
             draw('chart-month', {
                 series: mth.reverse(),
-                chart: { type: 'heatmap', height: 250 },
-                colors: ["#415A77"],
+                chart: { ...globalOptions.chart, type: 'heatmap', height: 200 },
+                colors: ["#56a64b"],
                 dataLabels: { enabled: false }
             });
 
@@ -351,8 +391,8 @@
             }));
             draw('chart-matrix', {
                 series: mtx,
-                chart: { type: 'heatmap', height: 450 },
-                colors: ["#0D1B2A"],
+                chart: { ...globalOptions.chart, type: 'heatmap', height: 400 },
+                colors: ["#3274d9"],
                 dataLabels: { enabled: true }
             });
         }
