@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk | Grupo Conexão Grafana</title>
+    <title>BI Helpdesk | Grafana Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -107,7 +107,7 @@
                 <input type="date" id="f-end" class="g-select" onchange="apply()">
             </div>
             
-            <button onclick="reset()" class="g-select border-none bg-[#415a77] hover:bg-[#778da9] font-bold px-4 text-white uppercase">Limpar</button>
+            <button onclick="reset()" class="g-select border-none bg-[#415a77] hover:bg-[#778da9] font-bold px-4 text-white uppercase transition-colors">Limpar</button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
@@ -151,11 +151,11 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
             <div class="grafana-panel lg:col-span-8">
-                <div class="panel-header">Evolução Mensal (Série Temporal)</div>
+                <div class="panel-header">Evolução Mensal (Abertos)</div>
                 <div class="panel-content"><div id="chart-ev"></div></div>
             </div>
             <div class="grafana-panel lg:col-span-4">
-                <div class="panel-header">Status Geral (Backlog vs Finalizados)</div>
+                <div class="panel-header">Status Geral (Backlog)</div>
                 <div class="panel-content"><div id="chart-prio"></div></div>
             </div>
         </div>
@@ -166,8 +166,8 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            <div class="grafana-panel"><div class="panel-header">Concentração Semanal</div><div class="panel-content"><div id="chart-week"></div></div></div>
-            <div class="grafana-panel"><div class="panel-header">Volume Diário Mensal</div><div class="panel-content"><div id="chart-month"></div></div></div>
+            <div class="grafana-panel"><div class="panel-header">Heatmap Semanal</div><div class="panel-content"><div id="chart-week"></div></div></div>
+            <div class="grafana-panel"><div class="panel-header">Heatmap Mensal</div><div class="panel-content"><div id="chart-month"></div></div></div>
         </div>
 
         <div class="grafana-panel"><div class="panel-header">Matriz: Solicitação por Setor Solicitante</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
@@ -177,6 +177,16 @@
         let raw = [];
         let charts = {};
         const COL = { STATUS: 'Status', PRIO: 'Prioridade', CREATED: 'Criado', UPDATED: 'Atualizado(a)', TYPE: 'Tipo de item', REQ: 'Campo personalizado (Request Type)', SECTOR: 'Campo personalizado (Setor Solicitante)' };
+
+        // Escala de Cores Heatmap (Impede o Branco)
+        const heatmapColors = {
+            ranges: [
+                { from: 0, to: 0, color: '#1b263b', name: 'vazio' },
+                { from: 1, to: 3, color: '#2c4a63' },
+                { from: 4, to: 7, color: '#415a77' },
+                { from: 8, to: 100, color: '#778da9' }
+            ]
+        };
 
         function clean(s) { 
             if(!s) return "";
@@ -246,37 +256,35 @@
             const total = data.length;
             const fin = data.filter(d => isF(d[COL.STATUS])).length;
             const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
-            const open = data.filter(d => isO(d[COL.STATUS])).length;
-            const progress = total - (fin + can + open);
-            
+            const openCount = data.filter(d => isO(d[COL.STATUS])).length;
+            const inProgress = total - (fin + can + openCount);
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
             document.getElementById('kpi-total').innerText = total;
-            document.getElementById('kpi-open').innerText = open;
-            document.getElementById('kpi-progress').innerText = progress;
+            document.getElementById('kpi-open').innerText = openCount;
+            document.getElementById('kpi-progress').innerText = inProgress;
             document.getElementById('kpi-resolved').innerText = fin;
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Mensal
-            const evOrder = ["01/26", "02/26", "03/26"];
-            const evNames = {"01/26":"Jan","02/26":"Fev","03/26":"Mar"};
+            // Evolução
+            const evLabels = ["01/26", "02/26", "03/26"];
             let ev = {"01/26":0, "02/26":0, "03/26":0};
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p && ev.hasOwnProperty(p.key)) ev[p.key]++; });
             
             draw('chart-ev', {
-                series: [{ name: 'Abertos', data: evOrder.map(k => ev[k]) }],
+                series: [{ name: 'Abertos', data: evLabels.map(k => ev[k]) }],
                 chart: { type: 'area', height: 280, toolbar: { show: false } },
                 stroke: { curve: 'smooth', width: 2 },
                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1 } },
                 colors: ['#778da9'],
-                xaxis: { categories: evOrder.map(k => evNames[k]) },
+                xaxis: { categories: ["Jan", "Fev", "Mar"] },
                 grid: { borderColor: '#1b263b', strokeDashArray: 4 }
             });
 
-            // Status Geral Pie
+            // Donut Backlog
             draw('chart-prio', { 
-                series: [open, progress, fin, can], 
+                series: [openCount, inProgress, fin, can], 
                 labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], 
                 chart: { type: 'donut', height: 280 }, 
                 stroke: { show: false }, 
@@ -286,6 +294,7 @@
 
             draw('chart-sectors', bar(count(data, COL.SECTOR, 10).v, count(data, COL.SECTOR, 10).l, '#56a64b', true));
             draw('chart-req', bar(count(data, COL.REQ, 10).v, count(data, COL.REQ, 10).l, '#415a77', true));
+            
             renderHeatmaps(data);
         }
 
@@ -295,23 +304,27 @@
             return { l:e.map(i=>i[0]), v:e.map(i=>i[1]) };
         }
 
-        function bar(v, l, c, h) { return { series:[{name:'Total', data:v}], chart:{type:'bar', height:250, toolbar:{show:false}}, colors:[c], plotOptions:{bar:{horizontal:h, borderRadius:2}}, xaxis:{categories:l}, grid:{borderColor:'#1b263b'} }; }
+        function bar(v, l, c, h) { 
+            return { series:[{name:'Chamados', data:v}], chart:{type:'bar', height:250, toolbar:{show:false}}, colors:[c], plotOptions:{bar:{horizontal:h, borderRadius:2, dataLabels: {position: 'top'}}}, xaxis:{categories:l}, grid:{borderColor:'#1b263b'}, dataLabels:{enabled:true} }; 
+        }
 
         function renderHeatmaps(data) {
-            const hColors = { ranges: [{ from: 0, to: 0, color: '#1b263b' }, { from: 1, to: 3, color: '#415a77' }, { from: 4, to: 100, color: '#778da9' }] };
             let wk = ["Seg","Ter","Qua","Qui","Sex","Sab","Dom"].map(d=>({name:d, data:Array(24).fill(0).map((_,i)=>({x:i+'h', y:0}))}));
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) { let dObj=new Date(p.y,p.m-1,p.d); let idx=(dObj.getDay()+6)%7; if(wk[idx]) wk[idx].data[p.h].y++; } });
-            draw('chart-week', { series:wk.reverse(), chart:{type:heatmap, height:250}, plotOptions:{heatmap:{colorScale:hColors}}, dataLabels:{enabled:false} });
+            draw('chart-week', { series:wk.reverse(), chart:{type:'heatmap', height:250}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:false} });
+            
             let mth = ["Jan","Fev","Mar"].map(m=>({name:m, data:Array(31).fill(0).map((_,i)=>({x:(i+1).toString(), y:0}))}));
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p && p.m<=3) mth[p.m-1].data[p.d-1].y++; });
-            draw('chart-month', { series:mth.reverse(), chart:{type:heatmap, height:250}, plotOptions:{heatmap:{colorScale:hColors}}, dataLabels:{enabled:false} });
+            draw('chart-month', { series:mth.reverse(), chart:{type:'heatmap', height:250}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:false} });
+            
             const s = count(data, COL.SECTOR, 8).l; const r = count(data, COL.REQ, 10).l;
-            draw('chart-matrix', { series:r.map(req=>({name:req, data:s.map(sec=>({x:sec, y:data.filter(d=>d[COL.REQ]===req && d[COL.SECTOR]===sec).length}))})), chart:{type:heatmap, height:400}, plotOptions:{heatmap:{colorScale:hColors}}, dataLabels:{enabled:true} });
+            draw('chart-matrix', { series:r.map(req=>({name:req, data:s.map(sec=>({x:sec, y:data.filter(d=>d[COL.REQ]===req && d[COL.SECTOR]===sec).length}))})), chart:{type:'heatmap', height:400}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:true} });
         }
 
         function draw(id, opts) {
             opts.chart.background = 'transparent'; opts.chart.foreColor = '#778da9';
-            if(charts[id]) charts[id].updateOptions(opts);
+            opts.tooltip = { theme: 'dark' };
+            if(charts[id]) { charts[id].updateOptions(opts); }
             else { charts[id] = new ApexCharts(document.querySelector("#"+id), opts); charts[id].render(); }
         }
     </script>
