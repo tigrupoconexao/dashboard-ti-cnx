@@ -27,10 +27,10 @@
         .panel-header::before { content: ""; width: 2px; height: 12px; background: var(--blue); }
         .panel-content { padding: 10px; flex-grow: 1; }
         .stat-panel { border-left: 3px solid var(--blue); }
-        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; line-height: 1.1; }
-        .stat-percent { font-size: 10px; font-weight: 600; color: var(--text-dim); margin-top: 2px; font-family: 'Roboto Mono', monospace; }
+        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 20px; font-weight: 700; color: #fff; line-height: 1.1; }
+        .stat-sub { font-size: 10px; font-weight: 600; color: var(--text-dim); margin-top: 4px; font-family: 'Roboto Mono', monospace; }
         .stat-label { font-size: 8px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-        .section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 12px 0; display: flex; align-items: center; gap: 10px; }
         .section-title::after { content: ""; flex-grow: 1; height: 1px; background: var(--border-panel); }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
         
@@ -71,7 +71,7 @@
         </div>
 
         <div class="section-title">Dados Gerais dos Chamados</div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             <div class="grafana-panel stat-panel !border-l-white"><div class="panel-content"><div class="stat-label">Total</div><div id="kpi-total" class="stat-value">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Em Aberto</div><div id="kpi-open" class="stat-value text-[#7b7b7b]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Em Andamento</div><div id="kpi-progress" class="stat-value text-[#3274d9]">0</div></div></div>
@@ -80,48 +80,24 @@
             <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Eficiência</div><div id="kpi-rate" class="stat-value text-[#f29527]">0%</div></div></div>
         </div>
 
-        <div class="section-title">Quantidade de Itens por prioridade</div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-            <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content">
-                <div class="stat-label">Crítico</div>
-                <div id="p-critico" class="stat-value text-[#e02f44]">0</div>
-                <div id="perc-critico" class="stat-percent">0%</div>
-            </div></div>
-            <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content">
-                <div class="stat-label">Muito Alto</div>
-                <div id="p-muito-alto" class="stat-value text-[#ff4d4d]">0</div>
-                <div id="perc-muito-alto" class="stat-percent">0%</div>
-            </div></div>
-            <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content">
-                <div class="stat-label">Alto</div>
-                <div id="p-alto" class="stat-value text-[#f29527]">0</div>
-                <div id="perc-alto" class="stat-percent">0%</div>
-            </div></div>
-            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content">
-                <div class="stat-label">Médio</div>
-                <div id="p-medio" class="stat-value text-[#3274d9]">0</div>
-                <div id="perc-medio" class="stat-percent">0%</div>
-            </div></div>
-            <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content">
-                <div class="stat-label">Baixo</div>
-                <div id="p-baixo" class="stat-value text-[#56a64b]">0</div>
-                <div id="perc-baixo" class="stat-percent">0%</div>
-            </div></div>
-            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content">
-                <div class="stat-label">Muito Baixo</div>
-                <div id="p-muito-baixo" class="stat-value text-[#7b7b7b]">0</div>
-                <div id="perc-muito-baixo" class="stat-percent">0%</div>
-            </div></div>
+        <div class="section-title">MTTR - Tempo Médio de Resolução por Prioridade</div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+            <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content"><div class="stat-label">Crítico</div><div id="mttr-critico" class="stat-value text-[#e02f44]">--</div><div id="perc-critico" class="stat-sub">0% do total</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content"><div class="stat-label">Muito Alto</div><div id="mttr-muito-alto" class="stat-value text-[#ff4d4d]">--</div><div id="perc-muito-alto" class="stat-sub">0% do total</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Alto</div><div id="mttr-alto" class="stat-value text-[#f29527]">--</div><div id="perc-alto" class="stat-sub">0% do total</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Médio</div><div id="mttr-medio" class="stat-value text-[#3274d9]">--</div><div id="perc-medio" class="stat-sub">0% do total</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content"><div class="stat-label">Baixo</div><div id="mttr-baixo" class="stat-value text-[#56a64b]">--</div><div id="perc-baixo" class="stat-sub">0% do total</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Muito Baixo</div><div id="mttr-muito-baixo" class="stat-value text-[#7b7b7b]">--</div><div id="perc-muito-baixo" class="stat-sub">0% do total</div></div></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
-            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal</div><div class="panel-content"><div id="chart-ev"></div></div></div>
-            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição por Status</div><div class="panel-content"><div id="chart-pie"></div></div></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4 mt-6">
+            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução de Chamados</div><div class="panel-content"><div id="chart-ev"></div></div></div>
+            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Status de Backlog</div><div class="panel-content"><div id="chart-pie"></div></div></div>
         </div>
 
-        <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores Solicitantes</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
+        <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
         <div class="grafana-panel mb-4">
-            <div class="panel-header">Chamados Mais Recentes (Últimos 10)</div>
+            <div class="panel-header">Últimos Chamados Resolvidos</div>
             <div class="panel-content overflow-x-auto">
                 <table class="recent-table" id="table-recent">
                     <thead><tr><th>Data</th><th>Solicitação</th><th>Setor</th><th>Prioridade</th><th>Status</th></tr></thead>
@@ -133,7 +109,7 @@
 
     <script>
         let raw = []; let charts = {};
-        const COL = { STATUS: 'Status', PRIO: 'Prioridade', CREATED: 'Criado', SECTOR: 'Campo personalizado (Setor Solicitante)', REQ: 'Campo personalizado (Request Type)' };
+        const COL = { STATUS: 'Status', PRIO: 'Prioridade', CREATED: 'Criado', UPDATED: 'Atualizado(a)', RESOLVED: 'Resolvido(a)', SECTOR: 'Campo personalizado (Setor Solicitante)', REQ: 'Campo personalizado (Request Type)' };
         
         function clean(s) { 
             if(!s) return "";
@@ -141,12 +117,19 @@
                     .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã§/g, 'ç').replace(/Ã£/g, 'ã').replace(/Ã­/g, 'í').replace(/Ã/g, 'í');
         }
 
-        function parseDate(s) {
+        function parseFullDate(s) {
             if(!s) return null;
-            let d, m, y;
-            if(s.includes('/')){ [d,m,y] = s.split(' ')[0].split('/'); }
-            else { [y,m,d] = s.split(' ')[0].split('-'); }
-            return { d: parseInt(d), m: parseInt(m), y: parseInt(y), key: `${m.toString().padStart(2,'0')}/${y.toString().slice(-2)}`, full: new Date(y, m-1, d) };
+            let d, m, y, h, min;
+            if(s.includes('/')){ 
+                let parts = s.split(' ');
+                [d,m,y] = parts[0].split('/');
+                [h, min] = parts[1] ? parts[1].split(':') : [0,0];
+            } else { 
+                let parts = s.split(' ');
+                [y,m,d] = parts[0].split('-');
+                [h, min] = parts[1] ? parts[1].split(':') : [0,0];
+            }
+            return new Date(y, m-1, d, h, min);
         }
 
         window.onload = function() {
@@ -174,10 +157,10 @@
             const dEnd = dEndInput ? new Date(dEndInput + "T23:59:59") : null;
 
             const filtered = raw.filter(d => {
-                const p = parseDate(d[COL.CREATED]);
-                if(!p) return false;
+                const dateFull = parseFullDate(d[COL.CREATED]);
+                if(!dateFull) return false;
                 const matchS = (fs==='All'||d[COL.SECTOR]===fs)&&(fst==='All'||d[COL.STATUS]===fst);
-                const matchD = (!dStart || p.full >= dStart) && (!dEnd || p.full <= dEnd);
+                const matchD = (!dStart || dateFull >= dStart) && (!dEnd || dateFull <= dEnd);
                 return matchS && matchD;
             });
             render(filtered);
@@ -185,82 +168,89 @@
 
         function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value=''; document.getElementById('f-end').value=''; apply(); }
 
+        function formatDuration(ms) {
+            if(isNaN(ms) || ms <= 0) return "--";
+            let totalHrs = Math.floor(ms / (1000 * 60 * 60));
+            let days = Math.floor(totalHrs / 24);
+            let hrs = totalHrs % 24;
+            return days > 0 ? `${days}d ${hrs}h` : `${hrs}h`;
+        }
+
         function render(data) {
             const finS = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
-            const canS = (s) => s === "Cancelado";
-            const opnS = (s) => s === "Aberto"; 
-
             const total = data.length;
-            const fin = data.filter(d => finS(d[COL.STATUS])).length;
-            const can = data.filter(d => canS(d[COL.STATUS])).length;
-            const opn = data.filter(d => opnS(d[COL.STATUS])).length;
-            const prg = total - (fin + can + opn);
-            const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
+            const finList = data.filter(d => finS(d[COL.STATUS]));
+            const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
+            const opn = data.filter(d => d[COL.STATUS] === "Aberto").length;
+            const prg = total - (finList.length + can + opn);
 
             document.getElementById('kpi-total').innerText = total;
             document.getElementById('kpi-open').innerText = opn;
             document.getElementById('kpi-progress').innerText = prg;
-            document.getElementById('kpi-resolved').innerText = fin;
+            document.getElementById('kpi-resolved').innerText = finList.length;
             document.getElementById('kpi-canceled').innerText = can;
-            document.getElementById('kpi-rate').innerText = rate + "%";
+            document.getElementById('kpi-rate').innerText = (total-can) > 0 ? ((finList.length/(total-can))*100).toFixed(1)+"%" : "0%";
 
-            // Prioridades com Percentual
-            const updatePrio = (id, label, pName) => {
-                const count = data.filter(d => d[COL.PRIO] === pName).length;
-                const perc = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
-                document.getElementById('p-' + id).innerText = count;
-                document.getElementById('perc-' + id).innerText = perc + '% do total';
-            };
+            // Cálculo MTTR por Prioridade
+            const prios = ["Crítico", "Muito alto", "Alto", "Médio", "Baixo", "Muito baixo"];
+            const ids = ["critico", "muito-alto", "alto", "medio", "baixo", "muito-baixo"];
 
-            updatePrio('critico', 'Crítico', 'Crítico');
-            updatePrio('muito-alto', 'Muito alto', 'Muito alto');
-            updatePrio('alto', 'Alto', 'Alto');
-            updatePrio('medio', 'Médio', 'Médio');
-            updatePrio('baixo', 'Baixo', 'Baixo');
-            updatePrio('muito-baixo', 'Muito baixo', 'Muito baixo');
+            prios.forEach((p, idx) => {
+                const pItems = data.filter(d => d[COL.PRIO] === p);
+                const pFin = pItems.filter(d => finS(d[COL.STATUS]));
+                
+                let totalTime = 0;
+                let count = 0;
 
-            // Evolução
-            let evMap = {};
-            data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) evMap[p.key] = (evMap[p.key] || 0) + 1; });
-            const evSorted = Object.keys(evMap).sort((a,b) => {
-                let [m1, y1] = a.split('/'); let [m2, y2] = b.split('/');
-                return new Date(20+y1, m1-1) - new Date(20+y2, m2-1);
+                pFin.forEach(item => {
+                    const start = parseFullDate(item[COL.CREATED]);
+                    const end = parseFullDate(item[COL.RESOLVED] || item[COL.UPDATED]);
+                    if(start && end && end > start) {
+                        totalTime += (end - start);
+                        count++;
+                    }
+                });
+
+                const avg = count > 0 ? totalTime / count : 0;
+                const perc = total > 0 ? ((pItems.length / total) * 100).toFixed(1) : 0;
+                
+                document.getElementById('mttr-' + ids[idx]).innerText = formatDuration(avg);
+                document.getElementById('perc-' + ids[idx]).innerText = `${perc}% do total (${pItems.length})`;
             });
-            
+
+            // Gráficos
+            let evMap = {};
+            data.forEach(d => { 
+                let p = parseFullDate(d[COL.CREATED]); 
+                if(p) { let k = `${(p.getMonth()+1).toString().padStart(2,'0')}/${p.getFullYear().toString().slice(-2)}`; evMap[k] = (evMap[k] || 0) + 1; }
+            });
+            const evSorted = Object.keys(evMap).sort();
+
             draw('chart-ev', {
-                series: [{ name: 'Abertos', data: evSorted.map(k => evMap[k]) }],
+                series: [{ name: 'Tickets', data: evSorted.map(k => evMap[k]) }],
                 chart: { type: 'area', height: 280, toolbar: {show:false} },
-                stroke: { curve: 'smooth', width: 2 },
-                fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } },
                 colors: ['#778da9'],
                 xaxis: { categories: evSorted },
-                grid: { borderColor: '#1b263b', strokeDashArray: 4 }
+                stroke: { curve: 'smooth', width: 2 },
+                fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } }
             });
 
             draw('chart-pie', { 
-                series: [opn, prg, fin, can], 
+                series: [opn, prg, finList.length, can], 
                 labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], 
                 chart: { type: 'donut', height: 280 }, 
-                stroke: { show: false }, 
                 colors: ['#7b7b7b','#3274d9','#56a64b','#e02f44'], 
                 legend: { position: 'bottom', labels: { colors: '#778da9' } } 
             });
 
             const sct = count(data, COL.SECTOR, 10);
-            draw('chart-sectors', { series:[{name:'Total', data:sct.v}], chart:{type:'bar', height:350, toolbar:{show:false}}, colors:['#56a64b'], plotOptions:{bar:{horizontal:true, borderRadius:2}}, xaxis:{categories:sct.l}, grid:{borderColor:'#1b263b'} });
+            draw('chart-sectors', { series:[{name:'Total', data:sct.v}], chart:{type:'bar', height:350, toolbar:{show:false}}, colors:['#56a64b'], plotOptions:{bar:{horizontal:true, borderRadius:2}}, xaxis:{categories:sct.l} });
 
-            // Tabela de Recentes
-            const recent = [...data].sort((a,b) => parseDate(b[COL.CREATED]).full - parseDate(a[COL.CREATED]).full).slice(0, 10);
-            const tbody = document.querySelector("#table-recent tbody");
-            tbody.innerHTML = recent.map(r => {
+            // Tabela
+            const recent = [...data].sort((a,b) => parseFullDate(b[COL.CREATED]) - parseFullDate(a[COL.CREATED])).slice(0, 10);
+            document.querySelector("#table-recent tbody").innerHTML = recent.map(r => {
                 let pClass = r[COL.PRIO] === 'Crítico' ? 'bg-[#e02f44]' : (r[COL.PRIO] === 'Alto' ? 'bg-[#f29527]' : 'bg-[#415a77]');
-                return `<tr>
-                    <td>${r[COL.CREATED].split(' ')[0]}</td>
-                    <td class="font-bold">${r[COL.REQ]}</td>
-                    <td>${r[COL.SECTOR]}</td>
-                    <td><span class="badge ${pClass}">${r[COL.PRIO]}</span></td>
-                    <td class="font-bold">${r[COL.STATUS]}</td>
-                </tr>`;
+                return `<tr><td>${r[COL.CREATED].split(' ')[0]}</td><td class="font-bold">${r[COL.REQ]}</td><td>${r[COL.SECTOR]}</td><td><span class="badge ${pClass}">${r[COL.PRIO]}</span></td><td>${r[COL.STATUS]}</td></tr>`;
             }).join('');
         }
 
