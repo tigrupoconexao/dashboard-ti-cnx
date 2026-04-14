@@ -81,12 +81,12 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
-            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal</div><div class="panel-content"><div id="chart-ev"></div></div></div>
-            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Backlog por Status</div><div class="panel-content"><div id="chart-prio"></div></div></div>
+            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal (Tickets Criados)</div><div class="panel-content"><div id="chart-ev"></div></div></div>
+            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição de Backlog</div><div class="panel-content"><div id="chart-prio"></div></div></div>
         </div>
 
         <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
-        <div class="grafana-panel mb-4"><div class="panel-header">Matriz: Solicitação por Setor</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
+        <div class="grafana-panel mb-4"><div class="panel-header">Matriz: Solicitação por Setor Solicitante</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
     </div>
 
     <script>
@@ -127,11 +127,8 @@
         function apply() {
             const fs = document.getElementById('f-sector').value;
             const fst = document.getElementById('f-status').value;
-            const dStartInput = document.getElementById('f-start').value;
-            const dEndInput = document.getElementById('f-end').value;
-
-            const dStart = dStartInput ? new Date(dStartInput + "T00:00:00") : null;
-            const dEnd = dEndInput ? new Date(dEndInput + "T23:59:59") : null;
+            const dStart = document.getElementById('f-start').value ? new Date(document.getElementById('f-start').value + "T00:00:00") : null;
+            const dEnd = document.getElementById('f-end').value ? new Date(document.getElementById('f-end').value + "T23:59:59") : null;
 
             const filtered = raw.filter(d => {
                 const p = parseDate(d[COL.CREATED]);
@@ -146,18 +143,20 @@
         function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value=''; document.getElementById('f-end').value=''; apply(); }
 
         function render(data) {
+            // Definições de Status
             const finS = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
+            const canS = (s) => s === "Cancelado";
             const opnS = (s) => ["Pendente", "Aberto"].includes(s);
 
             const total = data.length;
             const fin = data.filter(d => finS(d[COL.STATUS])).length;
-            const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
+            const can = data.filter(d => canS(d[COL.STATUS])).length;
             const opn = data.filter(d => opnS(d[COL.STATUS])).length;
             const prg = total - (fin + can + opn);
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
-            // KPIs de Prioridade Corrigidos
-            // Mapeamento: 
+            // KPIs de Prioridade (Tratando Encodings e Variações)
+            // Agrupamento: 
             // Crítica: Crítico, Muito alto
             // Alta: Alto
             // Média: Médio
@@ -174,7 +173,7 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Dinâmica
+            // Evolução
             let evMap = {};
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) evMap[p.key] = (evMap[p.key] || 0) + 1; });
             const evSorted = Object.keys(evMap).sort((a,b) => {
