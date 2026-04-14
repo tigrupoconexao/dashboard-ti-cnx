@@ -20,7 +20,6 @@
             --green: #56a64b;
             --red: #e02f44;
             --orange: #f29527;
-            --gray: #7b7b7b;
         }
         body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         .grafana-panel { background-color: var(--bg-panel); border: 1px solid var(--border-panel); border-radius: 2px; display: flex; flex-direction: column; overflow: hidden; }
@@ -30,7 +29,7 @@
         .stat-panel { border-left: 3px solid var(--blue); }
         .stat-value { font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; line-height: 1.2; }
         .stat-label { font-size: 8px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-        .section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
         .section-title::after { content: ""; flex-grow: 1; height: 1px; background: var(--border-panel); }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
         header { background: #0d1b2a; border-bottom: 1px solid var(--border-panel); }
@@ -63,6 +62,8 @@
             </div>
             <button onclick="reset()" class="g-select border-none bg-[#415a77] hover:bg-[#778da9] font-bold px-4 text-white uppercase transition-colors">Limpar</button>
         </div>
+
+        <div class="section-title">Dados Gerais dos Chamados</div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
             <div class="grafana-panel stat-panel !border-l-white"><div class="panel-content"><div class="stat-label">Total</div><div id="kpi-total" class="stat-value">0</div></div></div>
