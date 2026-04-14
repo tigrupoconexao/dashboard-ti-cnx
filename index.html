@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk | Grupo Conexão</title>
+    <title>BI Helpdesk | Grupo Conexão Grafana</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -27,18 +27,16 @@
         .panel-header::before { content: ""; width: 2px; height: 12px; background: var(--blue); }
         .panel-content { padding: 10px; flex-grow: 1; }
         .stat-panel { border-left: 3px solid var(--blue); }
-        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 20px; font-weight: 700; color: #fff; line-height: 1.1; }
-        .stat-sub { font-size: 10px; font-weight: 600; color: var(--text-dim); margin-top: 4px; font-family: 'Roboto Mono', monospace; }
+        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; line-height: 1.1; }
         .stat-label { font-size: 8px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+        .stat-sub { font-size: 9px; color: var(--text-dim); font-family: 'Roboto Mono', monospace; margin-top: 2px; opacity: 0.8; }
         .section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 12px 0; display: flex; align-items: center; gap: 10px; }
         .section-title::after { content: ""; flex-grow: 1; height: 1px; background: var(--border-panel); }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
-        
         .recent-table { width: 100%; font-size: 11px; border-collapse: collapse; }
         .recent-table th { text-align: left; padding: 8px; color: var(--text-dim); text-transform: uppercase; border-bottom: 1px solid var(--border-panel); }
         .recent-table td { padding: 8px; border-bottom: 1px solid rgba(65, 90, 119, 0.3); color: var(--text-main); }
         .badge { padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: bold; text-transform: uppercase; }
-
         header { background: #0d1b2a; border-bottom: 1px solid var(--border-panel); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-panel); }
@@ -80,24 +78,24 @@
             <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Eficiência</div><div id="kpi-rate" class="stat-value text-[#f29527]">0%</div></div></div>
         </div>
 
-        <div class="section-title">MTTR - Tempo Médio de Resolução por Prioridade</div>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
-            <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content"><div class="stat-label">Crítico</div><div id="mttr-critico" class="stat-value text-[#e02f44]">--</div><div id="perc-critico" class="stat-sub">0% do total</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content"><div class="stat-label">Muito Alto</div><div id="mttr-muito-alto" class="stat-value text-[#ff4d4d]">--</div><div id="perc-muito-alto" class="stat-sub">0% do total</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Alto</div><div id="mttr-alto" class="stat-value text-[#f29527]">--</div><div id="perc-alto" class="stat-sub">0% do total</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Médio</div><div id="mttr-medio" class="stat-value text-[#3274d9]">--</div><div id="perc-medio" class="stat-sub">0% do total</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content"><div class="stat-label">Baixo</div><div id="mttr-baixo" class="stat-value text-[#56a64b]">--</div><div id="perc-baixo" class="stat-sub">0% do total</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Muito Baixo</div><div id="mttr-muito-baixo" class="stat-value text-[#7b7b7b]">--</div><div id="perc-muito-baixo" class="stat-sub">0% do total</div></div></div>
+        <div class="section-title">Quantidade de Itens por prioridade</div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
+            <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content"><div class="stat-label">Crítico</div><div id="p-critico" class="stat-value text-[#e02f44]">0</div><div id="mttr-critico" class="stat-sub">MTTR: --</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content"><div class="stat-label">Muito Alto</div><div id="p-muito-alto" class="stat-value text-[#ff4d4d]">0</div><div id="mttr-muito-alto" class="stat-sub">MTTR: --</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Alto</div><div id="p-alto" class="stat-value text-[#f29527]">0</div><div id="mttr-alto" class="stat-sub">MTTR: --</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Médio</div><div id="p-medio" class="stat-value text-[#3274d9]">0</div><div id="mttr-medio" class="stat-sub">MTTR: --</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content"><div class="stat-label">Baixo</div><div id="p-baixo" class="stat-value text-[#56a64b]">0</div><div id="mttr-baixo" class="stat-sub">MTTR: --</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Muito Baixo</div><div id="p-muito-baixo" class="stat-value text-[#7b7b7b]">0</div><div id="mttr-muito-baixo" class="stat-sub">MTTR: --</div></div></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4 mt-6">
-            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução de Chamados</div><div class="panel-content"><div id="chart-ev"></div></div></div>
-            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Status de Backlog</div><div class="panel-content"><div id="chart-pie"></div></div></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal</div><div class="panel-content"><div id="chart-ev"></div></div></div>
+            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição por Status</div><div class="panel-content"><div id="chart-pie"></div></div></div>
         </div>
 
         <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
         <div class="grafana-panel mb-4">
-            <div class="panel-header">Últimos Chamados Resolvidos</div>
+            <div class="panel-header">Últimos Chamados Registrados</div>
             <div class="panel-content overflow-x-auto">
                 <table class="recent-table" id="table-recent">
                     <thead><tr><th>Data</th><th>Solicitação</th><th>Setor</th><th>Prioridade</th><th>Status</th></tr></thead>
@@ -191,7 +189,7 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = (total-can) > 0 ? ((finList.length/(total-can))*100).toFixed(1)+"%" : "0%";
 
-            // Cálculo MTTR por Prioridade
+            // KPIs Prioridade & MTTR
             const prios = ["Crítico", "Muito alto", "Alto", "Médio", "Baixo", "Muito baixo"];
             const ids = ["critico", "muito-alto", "alto", "medio", "baixo", "muito-baixo"];
 
@@ -201,21 +199,14 @@
                 
                 let totalTime = 0;
                 let count = 0;
-
                 pFin.forEach(item => {
                     const start = parseFullDate(item[COL.CREATED]);
                     const end = parseFullDate(item[COL.RESOLVED] || item[COL.UPDATED]);
-                    if(start && end && end > start) {
-                        totalTime += (end - start);
-                        count++;
-                    }
+                    if(start && end && end > start) { totalTime += (end - start); count++; }
                 });
 
-                const avg = count > 0 ? totalTime / count : 0;
-                const perc = total > 0 ? ((pItems.length / total) * 100).toFixed(1) : 0;
-                
-                document.getElementById('mttr-' + ids[idx]).innerText = formatDuration(avg);
-                document.getElementById('perc-' + ids[idx]).innerText = `${perc}% do total (${pItems.length})`;
+                document.getElementById('p-' + ids[idx]).innerText = pItems.length;
+                document.getElementById('mttr-' + ids[idx]).innerText = "MTTR: " + formatDuration(count > 0 ? totalTime / count : 0);
             });
 
             // Gráficos
@@ -225,33 +216,14 @@
                 if(p) { let k = `${(p.getMonth()+1).toString().padStart(2,'0')}/${p.getFullYear().toString().slice(-2)}`; evMap[k] = (evMap[k] || 0) + 1; }
             });
             const evSorted = Object.keys(evMap).sort();
-
-            draw('chart-ev', {
-                series: [{ name: 'Tickets', data: evSorted.map(k => evMap[k]) }],
-                chart: { type: 'area', height: 280, toolbar: {show:false} },
-                colors: ['#778da9'],
-                xaxis: { categories: evSorted },
-                stroke: { curve: 'smooth', width: 2 },
-                fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } }
-            });
-
-            draw('chart-pie', { 
-                series: [opn, prg, finList.length, can], 
-                labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], 
-                chart: { type: 'donut', height: 280 }, 
-                colors: ['#7b7b7b','#3274d9','#56a64b','#e02f44'], 
-                legend: { position: 'bottom', labels: { colors: '#778da9' } } 
-            });
+            draw('chart-ev', { series:[{name:'Tickets', data:evSorted.map(k=>evMap[k])}], chart:{type:'area', height:280, toolbar:{show:false}}, xaxis:{categories:evSorted}, stroke:{curve:'smooth', width:2}, colors:['#778da9']});
+            draw('chart-pie', { series:[opn, prg, finList.length, can], labels:["Aberto","Andamento","Finalizado","Cancelado"], chart:{type:'donut', height:280}, colors:['#7b7b7b','#3274d9','#56a64b','#e02f44']});
 
             const sct = count(data, COL.SECTOR, 10);
             draw('chart-sectors', { series:[{name:'Total', data:sct.v}], chart:{type:'bar', height:350, toolbar:{show:false}}, colors:['#56a64b'], plotOptions:{bar:{horizontal:true, borderRadius:2}}, xaxis:{categories:sct.l} });
 
-            // Tabela
             const recent = [...data].sort((a,b) => parseFullDate(b[COL.CREATED]) - parseFullDate(a[COL.CREATED])).slice(0, 10);
-            document.querySelector("#table-recent tbody").innerHTML = recent.map(r => {
-                let pClass = r[COL.PRIO] === 'Crítico' ? 'bg-[#e02f44]' : (r[COL.PRIO] === 'Alto' ? 'bg-[#f29527]' : 'bg-[#415a77]');
-                return `<tr><td>${r[COL.CREATED].split(' ')[0]}</td><td class="font-bold">${r[COL.REQ]}</td><td>${r[COL.SECTOR]}</td><td><span class="badge ${pClass}">${r[COL.PRIO]}</span></td><td>${r[COL.STATUS]}</td></tr>`;
-            }).join('');
+            document.querySelector("#table-recent tbody").innerHTML = recent.map(r => `<tr><td>${r[COL.CREATED].split(' ')[0]}</td><td class="font-bold">${r[COL.REQ]}</td><td>${r[COL.SECTOR]}</td><td><span class="badge ${r[COL.PRIO]==='Crítico'?'bg-[#e02f44]':(r[COL.PRIO]==='Alto'?'bg-[#f29527]':'bg-[#415a77]')}">${r[COL.PRIO]}</span></td><td>${r[COL.STATUS]}</td></tr>`).join('');
         }
 
         function count(data, f, l) {
