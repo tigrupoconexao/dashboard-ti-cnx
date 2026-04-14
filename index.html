@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk | Grupo Conexão</title>
+    <title>BI Helpdesk | Grupo Conexão Grafana</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -27,9 +27,10 @@
         .panel-header::before { content: ""; width: 2px; height: 12px; background: var(--blue); }
         .panel-content { padding: 12px; flex-grow: 1; }
         .stat-panel { border-left: 4px solid var(--blue); }
-        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 24px; font-weight: 700; color: #fff; }
-        .stat-label { font-size: 9px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 26px; font-weight: 700; color: #fff; }
+        .stat-label { font-size: 9px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
         header { background: #0d1b2a; border-bottom: 1px solid var(--border-panel); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-panel); }
@@ -43,7 +44,7 @@
                 <div class="bg-white p-1 rounded-sm"><img src="logo.png" style="height:30px;" onerror="this.src='https://via.placeholder.com/100x30/FFFFFF/0d1b2a?text=LOGOMARCA'"></div>
                 <div class="text-[14px] font-bold tracking-tight">TI GRUPO CONEXÃO / <span class="text-[#778da9]">HELPDESK BI</span></div>
             </div>
-            <div id="last-update" class="text-[10px] font-mono text-right flex flex-col">
+            <div class="text-[10px] font-mono text-right flex flex-col">
                 <span class="text-[#778da9]">SINCRONIZAÇÃO DE DADOS</span>
                 <span id="sync-time" class="text-white font-bold">---</span>
             </div>
@@ -65,7 +66,7 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
-            <div class="grafana-panel stat-panel"><div class="panel-content"><div class="stat-label">Total Geral</div><div id="kpi-total" class="stat-value">0</div></div></div>
+            <div class="grafana-panel stat-panel"><div class="panel-content"><div class="stat-label">Total</div><div id="kpi-total" class="stat-value">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#e0e1dd]"><div class="panel-content"><div class="stat-label">Em Aberto</div><div id="kpi-open" class="stat-value text-[#e0e1dd]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#778da9]"><div class="panel-content"><div class="stat-label">Em Andamento</div><div id="kpi-progress" class="stat-value text-[#778da9]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content"><div class="stat-label">Finalizados</div><div id="kpi-resolved" class="stat-value text-[#56a64b]">0</div></div></div>
@@ -82,11 +83,11 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
             <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal (Tickets Criados)</div><div class="panel-content"><div id="chart-ev"></div></div></div>
-            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição de Backlog</div><div class="panel-content"><div id="chart-prio"></div></div></div>
+            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição por Status</div><div class="panel-content"><div id="chart-prio"></div></div></div>
         </div>
 
         <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
-        <div class="grafana-panel mb-4"><div class="panel-header">Matriz: Solicitação por Setor Solicitante</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
+        <div class="grafana-panel mb-4"><div class="panel-header">Matriz: Solicitação por Setor</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
     </div>
 
     <script>
@@ -127,8 +128,11 @@
         function apply() {
             const fs = document.getElementById('f-sector').value;
             const fst = document.getElementById('f-status').value;
-            const dStart = document.getElementById('f-start').value ? new Date(document.getElementById('f-start').value + "T00:00:00") : null;
-            const dEnd = document.getElementById('f-end').value ? new Date(document.getElementById('f-end').value + "T23:59:59") : null;
+            const dStartInput = document.getElementById('f-start').value;
+            const dEndInput = document.getElementById('f-end').value;
+
+            const dStart = dStartInput ? new Date(dStartInput + "T00:00:00") : null;
+            const dEnd = dEndInput ? new Date(dEndInput + "T23:59:59") : null;
 
             const filtered = raw.filter(d => {
                 const p = parseDate(d[COL.CREATED]);
@@ -143,25 +147,18 @@
         function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value=''; document.getElementById('f-end').value=''; apply(); }
 
         function render(data) {
-            // Definições de Status
             const finS = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
-            const canS = (s) => s === "Cancelado";
             const opnS = (s) => ["Pendente", "Aberto"].includes(s);
 
             const total = data.length;
             const fin = data.filter(d => finS(d[COL.STATUS])).length;
-            const can = data.filter(d => canS(d[COL.STATUS])).length;
+            const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
             const opn = data.filter(d => opnS(d[COL.STATUS])).length;
             const prg = total - (fin + can + opn);
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
-            // KPIs de Prioridade (Tratando Encodings e Variações)
-            // Agrupamento: 
-            // Crítica: Crítico, Muito alto
-            // Alta: Alto
-            // Média: Médio
-            // Baixa: Baixo, Muito baixo
-            document.getElementById('prio-critica').innerText = data.filter(d => d[COL.PRIO] === "Crítico" || d[COL.PRIO] === "Muito alto").length;
+            // KPIs de Prioridade (Lógica Corrigida)
+            document.getElementById('prio-critica').innerText = data.filter(d => d[COL.PRIO].includes("Crítico") || d[COL.PRIO].includes("Muito alto")).length;
             document.getElementById('prio-alta').innerText = data.filter(d => d[COL.PRIO] === "Alto").length;
             document.getElementById('prio-media').innerText = data.filter(d => d[COL.PRIO] === "Médio").length;
             document.getElementById('prio-baixa').innerText = data.filter(d => d[COL.PRIO] === "Baixo" || d[COL.PRIO] === "Muito baixo").length;
@@ -173,7 +170,7 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução
+            // Evolução Dinâmica (Inclui Abril automaticamente)
             let evMap = {};
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) evMap[p.key] = (evMap[p.key] || 0) + 1; });
             const evSorted = Object.keys(evMap).sort((a,b) => {
