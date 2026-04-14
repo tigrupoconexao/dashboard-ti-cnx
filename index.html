@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk | Grupo Conexão</title>
+    <title>BI Helpdesk | Grupo Conexão Grafana</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -80,22 +80,22 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
             <div class="grafana-panel lg:col-span-8">
-                <div class="panel-header">Evolução Mensal (Série Temporal)</div>
+                <div class="panel-header">Evolução Mensal (Criados)</div>
                 <div class="panel-content"><div id="chart-ev"></div></div>
             </div>
             <div class="grafana-panel lg:col-span-4">
-                <div class="panel-header">Status Backlog</div>
+                <div class="panel-header">Distribuição de Status</div>
                 <div class="panel-content"><div id="chart-prio"></div></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
             <div class="grafana-panel"><div class="panel-header">Concentração Semanal</div><div class="panel-content"><div id="chart-week"></div></div></div>
-            <div class="grafana-panel"><div class="panel-header">Heatmap Mensal Dinâmico</div><div class="panel-content"><div id="chart-month"></div></div></div>
+            <div class="grafana-panel"><div class="panel-header">Heatmap Mensal</div><div class="panel-content"><div id="chart-month"></div></div></div>
         </div>
 
-        <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
-        <div class="grafana-panel mb-4"><div class="panel-header">Matriz: Solicitação por Setor Solicitante</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
+        <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores Solicitantes</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
+        <div class="grafana-panel mb-4"><div class="panel-header">Matriz: Solicitação por Setor</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
     </div>
 
     <script>
@@ -147,8 +147,11 @@
             const fst = document.getElementById('f-status').value;
             const ft = document.getElementById('f-type').value;
             const fr = document.getElementById('f-req').value;
-            const dStart = document.getElementById('f-start').value ? new Date(document.getElementById('f-start').value + "T00:00:00") : null;
-            const dEnd = document.getElementById('f-end').value ? new Date(document.getElementById('f-end').value + "T23:59:59") : null;
+            const dStartInput = document.getElementById('f-start').value;
+            const dEndInput = document.getElementById('f-end').value;
+
+            const dStart = dStartInput ? new Date(dStartInput + "T00:00:00") : null;
+            const dEnd = dEndInput ? new Date(dEndInput + "T23:59:59") : null;
 
             const filtered = raw.filter(d => {
                 const p = parseDate(d[COL.CREATED]);
@@ -163,13 +166,17 @@
         function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value=''; document.getElementById('f-end').value=''; apply(); }
 
         function render(data) {
+            // Lógica de Status Corrigida
             const finS = ["Resolvido", "Concluído", "Concluido"];
-            const openS = ["Pendente", "Aberto", "Novo"];
+            const cancelS = ["Cancelado"];
+            const openS = ["Pendente", "Aberto"]; // Apenas status de entrada literal
+
             const total = data.length;
             const fin = data.filter(d => finS.includes(d[COL.STATUS])).length;
-            const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
+            const can = data.filter(d => cancelS.includes(d[COL.STATUS])).length;
             const opn = data.filter(d => openS.includes(d[COL.STATUS])).length;
-            const prg = total - (fin + can + opn);
+            const prg = total - (fin + can + opn); // O restante é considerado "Em Andamento"
+            
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
             document.getElementById('kpi-total').innerText = total;
@@ -200,7 +207,7 @@
             draw('chart-prio', { series: [opn, prg, fin, can], labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], chart: { type: 'donut', height: 280 }, stroke: { show: false }, colors: ['#e0e1dd','#778da9','#56a64b','#e02f44'], legend: { position: 'bottom', labels: { colors: '#778da9' } } });
             
             const sct = count(data, COL.SECTOR, 10);
-            draw('chart-sectors', { series:[{data:sct.v}], chart:{type:'bar', height:250, toolbar:{show:false}}, colors:['#56a64b'], plotOptions:{bar:{horizontal:true, borderRadius:2}}, xaxis:{categories:sct.l}, grid:{borderColor:'#1b263b'} });
+            draw('chart-sectors', { series:[{name:'Chamados', data:sct.v}], chart:{type:'bar', height:350, toolbar:{show:false}}, colors:['#56a64b'], plotOptions:{bar:{horizontal:true, borderRadius:2}}, xaxis:{categories:sct.l}, grid:{borderColor:'#1b263b'} });
 
             renderHeatmaps(data);
         }
@@ -212,12 +219,10 @@
         }
 
         function renderHeatmaps(data) {
-            // Semana
             let wk = ["Seg","Ter","Qua","Qui","Sex","Sab","Dom"].map(d=>({name:d, data:Array(24).fill(0).map((_,i)=>({x:i+'h', y:0}))}));
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) { let dObj=new Date(p.y,p.m-1,p.d); let idx=(dObj.getDay()+6)%7; if(wk[idx]) wk[idx].data[p.h].y++; } });
             draw('chart-week', { series:wk.reverse(), chart:{type:'heatmap', height:250}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:false} });
 
-            // Mês Dinâmico (Pega os últimos 31 dias dos dados filtrados)
             let mthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
             let activeMonths = [...new Set(data.map(d => parseDate(d[COL.CREATED]).m))].sort((a,b) => a-b);
             let mthSeries = activeMonths.map(m => ({ name: mthNames[m-1], data: Array(31).fill(0).map((_,i)=>({x:(i+1).toString(), y:0})) }));
