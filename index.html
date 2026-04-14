@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TI Helpdesk | Grafana Pro</title>
+    <title>BI Helpdesk | Grupo Conexão Grafana</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -44,7 +44,7 @@
                 <div class="bg-white p-1 rounded-sm"><img src="logo.png" style="height:30px;" onerror="this.src='https://via.placeholder.com/100x30/FFFFFF/0d1b2a?text=LOGOMARCA'"></div>
                 <div class="text-[14px] font-bold tracking-tight">TI GRUPO CONEXÃO / <span class="text-[#778da9]">HELPDESK BI</span></div>
             </div>
-            <div class="text-[10px] font-mono text-right flex flex-col">
+            <div id="last-update" class="text-[10px] font-mono text-right flex flex-col">
                 <span class="text-[#778da9]">SINCRONIZAÇÃO DE DADOS</span>
                 <span id="sync-time" class="text-white font-bold">---</span>
             </div>
@@ -52,18 +52,21 @@
     </header>
 
     <div class="max-w-[1800px] mx-auto px-4">
+        
         <div class="flex flex-wrap items-center gap-3 mb-6 bg-[#1b263b] p-3 border border-[#415a77]">
             <select id="f-sector" class="g-select" onchange="apply()"><option value="All">Setor: Todos</option></select>
             <select id="f-status" class="g-select" onchange="apply()"><option value="All">Status: Todos</option></select>
             <select id="f-type" class="g-select" onchange="apply()"><option value="All">Tipo: Todos</option></select>
             <select id="f-req" class="g-select" onchange="apply()"><option value="All">Solicitação: Todas</option></select>
+            
             <div class="flex items-center gap-2 ml-auto">
                 <label class="text-[10px] font-bold text-[#778da9] uppercase">Período:</label>
                 <input type="date" id="f-start" class="g-select" onchange="apply()">
                 <span class="text-[#778da9] text-[10px]">ATÉ</span>
                 <input type="date" id="f-end" class="g-select" onchange="apply()">
             </div>
-            <button onclick="reset()" class="g-select border-none bg-[#415a77] hover:bg-[#778da9] font-bold px-4 text-white uppercase">Limpar</button>
+            
+            <button onclick="reset()" class="g-select border-none bg-[#415a77] hover:bg-[#778da9] font-bold px-4 text-white uppercase transition-colors">Limpar</button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
@@ -76,26 +79,28 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
-            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal</div><div class="panel-content"><div id="chart-ev"></div></div></div>
-            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Status Backlog</div><div class="panel-content"><div id="chart-prio"></div></div></div>
+            <div class="grafana-panel lg:col-span-8">
+                <div class="panel-header">Evolução Mensal (Série Temporal)</div>
+                <div class="panel-content"><div id="chart-ev"></div></div>
+            </div>
+            <div class="grafana-panel lg:col-span-4">
+                <div class="panel-header">Status Backlog</div>
+                <div class="panel-content"><div id="chart-prio"></div></div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            <div class="grafana-panel"><div class="panel-header">Top 10 Setores</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
-            <div class="grafana-panel"><div class="panel-header">Top 10 Solicitações</div><div class="panel-content"><div id="chart-req"></div></div></div>
+            <div class="grafana-panel"><div class="panel-header">Concentração Semanal</div><div class="panel-content"><div id="chart-week"></div></div></div>
+            <div class="grafana-panel"><div class="panel-header">Heatmap Mensal Dinâmico</div><div class="panel-content"><div id="chart-month"></div></div></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            <div class="grafana-panel"><div class="panel-header">Heatmap Semanal</div><div class="panel-content"><div id="chart-week"></div></div></div>
-            <div class="grafana-panel"><div class="panel-header">Heatmap Mensal</div><div class="panel-content"><div id="chart-month"></div></div></div>
-        </div>
-
-        <div class="grafana-panel"><div class="panel-header">Matriz: Solicitação por Setor Solicitante</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
+        <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
+        <div class="grafana-panel mb-4"><div class="panel-header">Matriz: Solicitação por Setor Solicitante</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
     </div>
 
     <script>
         let raw = []; let charts = {};
-        const COL = { STATUS: 'Status', PRIO: 'Prioridade', CREATED: 'Criado', UPDATED: 'Atualizado(a)', TYPE: 'Tipo de item', REQ: 'Campo personalizado (Request Type)', SECTOR: 'Campo personalizado (Setor Solicitante)' };
+        const COL = { STATUS: 'Status', CREATED: 'Criado', REQ: 'Campo personalizado (Request Type)', SECTOR: 'Campo personalizado (Setor Solicitante)', TYPE: 'Tipo de item' };
         const heatmapColors = { ranges: [{ from: 0, to: 0, color: '#1b263b' }, { from: 1, to: 3, color: '#2c4a63' }, { from: 4, to: 7, color: '#415a77' }, { from: 8, to: 100, color: '#778da9' }] };
 
         function clean(s) { 
@@ -107,9 +112,16 @@
         function parseDate(s) {
             if(!s) return null;
             let d, m, y, h;
-            if(s.includes('/')){ [d,m,y] = s.split(' ')[0].split('/'); h = s.split(' ')[1]?.split(':')[0] || 0; }
-            else { [y,m,d] = s.split(' ')[0].split('-'); h = s.split(' ')[1]?.split(':')[0] || 0; }
-            return { d: parseInt(d), m: parseInt(m), y: parseInt(y), h: parseInt(h), key: `${m.toString().padStart(2,'0')}/${y.toString().slice(-2)}`, full: new Date(parseInt(year=y), parseInt(month=m-1), parseInt(day=d)) };
+            if(s.includes('/')){ 
+                let parts = s.split(' ');
+                [d,m,y] = parts[0].split('/');
+                h = parts[1] ? parts[1].split(':')[0] : 0;
+            } else { 
+                let parts = s.split(' ');
+                [y,m,d] = parts[0].split('-');
+                h = parts[1] ? parts[1].split(':')[0] : 0;
+            }
+            return { d: parseInt(d), m: parseInt(m), y: parseInt(y), h: parseInt(h), key: `${m.toString().padStart(2,'0')}/${y.toString().slice(-2)}`, full: new Date(y, m-1, d) };
         }
 
         window.onload = function() {
@@ -135,52 +147,61 @@
             const fst = document.getElementById('f-status').value;
             const ft = document.getElementById('f-type').value;
             const fr = document.getElementById('f-req').value;
-            const dateStart = document.getElementById('f-start').value;
-            const dateEnd = document.getElementById('f-end').value;
+            const dStart = document.getElementById('f-start').value ? new Date(document.getElementById('f-start').value + "T00:00:00") : null;
+            const dEnd = document.getElementById('f-end').value ? new Date(document.getElementById('f-end').value + "T23:59:59") : null;
 
             const filtered = raw.filter(d => {
                 const p = parseDate(d[COL.CREATED]);
                 if(!p) return false;
-                const matchSelects = (fs === 'All' || d[COL.SECTOR] === fs) && (fst === 'All' || d[COL.STATUS] === fst) && (ft === 'All' || d[COL.TYPE] === ft) && (fr === 'All' || d[COL.REQ] === fr);
-                const sDate = dateStart ? new Date(dateStart + "T00:00:00") : null;
-                const eDate = dateEnd ? new Date(dateEnd + "T23:59:59") : null;
-                const matchDate = (!sDate || p.full >= sDate) && (!eDate || p.full <= eDate);
-                return matchSelects && matchDate;
+                const matchS = (fs==='All'||d[COL.SECTOR]===fs)&&(fst==='All'||d[COL.STATUS]===fst)&&(ft==='All'||d[COL.TYPE]===ft)&&(fr==='All'||d[COL.REQ]===fr);
+                const matchD = (!dStart || p.full >= dStart) && (!dEnd || p.full <= dEnd);
+                return matchS && matchD;
             });
             render(filtered);
         }
 
-        function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value = ""; document.getElementById('f-end').value = ""; apply(); }
+        function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value=''; document.getElementById('f-end').value=''; apply(); }
 
         function render(data) {
-            const isF = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
-            const isO = (s) => ["Pendente", "Aberto", "Novo"].includes(s);
-
+            const finS = ["Resolvido", "Concluído", "Concluido"];
+            const openS = ["Pendente", "Aberto", "Novo"];
             const total = data.length;
-            const fin = data.filter(d => isF(d[COL.STATUS])).length;
+            const fin = data.filter(d => finS.includes(d[COL.STATUS])).length;
             const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
-            const openCount = data.filter(d => isO(d[COL.STATUS])).length;
-            const inProgress = total - (fin + can + openCount);
+            const opn = data.filter(d => openS.includes(d[COL.STATUS])).length;
+            const prg = total - (fin + can + opn);
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
             document.getElementById('kpi-total').innerText = total;
-            document.getElementById('kpi-open').innerText = openCount;
-            document.getElementById('kpi-progress').innerText = inProgress;
+            document.getElementById('kpi-open').innerText = opn;
+            document.getElementById('kpi-progress').innerText = prg;
             document.getElementById('kpi-resolved').innerText = fin;
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução
-            const evLabels = ["01/26", "02/26", "03/26"];
-            let ev = {"01/26":0, "02/26":0, "03/26":0};
-            data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p && ev.hasOwnProperty(p.key)) ev[p.key]++; });
-            draw('chart-ev', { series: [{ name: 'Abertos', data: evLabels.map(k => ev[k]) }], chart: { type: 'area', height: 280, toolbar: { show: false } }, stroke: { curve: 'smooth', width: 2 }, fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1 } }, colors: ['#778da9'], xaxis: { categories: ["Jan", "Fev", "Mar"] }, grid: { borderColor: '#1b263b', strokeDashArray: 4 } });
+            // Evolução Dinâmica
+            let evMap = {};
+            data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) evMap[p.key] = (evMap[p.key] || 0) + 1; });
+            const evSorted = Object.keys(evMap).sort((a,b) => {
+                let [m1, y1] = a.split('/'); let [m2, y2] = b.split('/');
+                return new Date(20+y1, m1-1) - new Date(20+y2, m2-1);
+            });
+            
+            draw('chart-ev', {
+                series: [{ name: 'Abertos', data: evSorted.map(k => evMap[k]) }],
+                chart: { type: 'area', height: 280, toolbar: {show:false} },
+                stroke: { curve: 'smooth', width: 2 },
+                fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } },
+                colors: ['#778da9'],
+                xaxis: { categories: evSorted },
+                grid: { borderColor: '#1b263b', strokeDashArray: 4 }
+            });
 
-            // Donut
-            draw('chart-prio', { series: [openCount, inProgress, fin, can], labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], chart: { type: 'donut', height: 280 }, stroke: { show: false }, colors: ['#e0e1dd','#778da9','#56a64b','#e02f44'], legend: { position: 'bottom', labels: { colors: '#778da9' } } });
+            draw('chart-prio', { series: [opn, prg, fin, can], labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], chart: { type: 'donut', height: 280 }, stroke: { show: false }, colors: ['#e0e1dd','#778da9','#56a64b','#e02f44'], legend: { position: 'bottom', labels: { colors: '#778da9' } } });
+            
+            const sct = count(data, COL.SECTOR, 10);
+            draw('chart-sectors', { series:[{data:sct.v}], chart:{type:'bar', height:250, toolbar:{show:false}}, colors:['#56a64b'], plotOptions:{bar:{horizontal:true, borderRadius:2}}, xaxis:{categories:sct.l}, grid:{borderColor:'#1b263b'} });
 
-            draw('chart-sectors', bar(count(data, COL.SECTOR, 10).v, count(data, COL.SECTOR, 10).l, '#56a64b', true));
-            draw('chart-req', bar(count(data, COL.REQ, 10).v, count(data, COL.REQ, 10).l, '#415a77', true));
             renderHeatmaps(data);
         }
 
@@ -190,22 +211,33 @@
             return { l:e.map(i=>i[0]), v:e.map(i=>i[1]) };
         }
 
-        function bar(v, l, c, h) { return { series:[{name:'Chamados', data:v}], chart:{type:'bar', height:250, toolbar:{show:false}}, colors:[c], plotOptions:{bar:{horizontal:h, borderRadius:2, dataLabels: {position: 'top'}}}, xaxis:{categories:l}, grid:{borderColor:'#1b263b'}, dataLabels:{enabled:true} }; }
-
         function renderHeatmaps(data) {
+            // Semana
             let wk = ["Seg","Ter","Qua","Qui","Sex","Sab","Dom"].map(d=>({name:d, data:Array(24).fill(0).map((_,i)=>({x:i+'h', y:0}))}));
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) { let dObj=new Date(p.y,p.m-1,p.d); let idx=(dObj.getDay()+6)%7; if(wk[idx]) wk[idx].data[p.h].y++; } });
             draw('chart-week', { series:wk.reverse(), chart:{type:'heatmap', height:250}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:false} });
-            let mth = ["Jan","Fev","Mar"].map(m=>({name:m, data:Array(31).fill(0).map((_,i)=>({x:(i+1).toString(), y:0}))}));
-            data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p && p.m<=3) mth[p.m-1].data[p.d-1].y++; });
-            draw('chart-month', { series:mth.reverse(), chart:{type:'heatmap', height:250}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:false} });
+
+            // Mês Dinâmico (Pega os últimos 31 dias dos dados filtrados)
+            let mthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+            let activeMonths = [...new Set(data.map(d => parseDate(d[COL.CREATED]).m))].sort((a,b) => a-b);
+            let mthSeries = activeMonths.map(m => ({ name: mthNames[m-1], data: Array(31).fill(0).map((_,i)=>({x:(i+1).toString(), y:0})) }));
+            data.forEach(d => { 
+                let p=parseDate(d[COL.CREATED]); 
+                if(p){
+                    let mIdx = activeMonths.indexOf(p.m);
+                    if(mIdx !== -1) mthSeries[mIdx].data[p.d-1].y++;
+                }
+            });
+            draw('chart-month', { series:mthSeries.reverse(), chart:{type:'heatmap', height:250}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:false} });
+
             const s = count(data, COL.SECTOR, 8).l; const r = count(data, COL.REQ, 10).l;
-            draw('chart-matrix', { series:r.map(req=>({name:req, data:s.map(sec=>({x:sec, y:data.filter(d=>d[COL.REQ]===req && d[COL.SECTOR]===sec).length}))})), chart:{type:'heatmap', height:400}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:true} });
+            draw('chart-matrix', { series:r.map(req=>({name:req, data:s.map(sec=>({x:sec, y:data.filter(d=>d[COL.REQ]===req && d[COL.SECTOR]===sec).length}))})), chart:{type:'heatmap', height:450}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:true} });
         }
 
         function draw(id, opts) {
             opts.chart.background = 'transparent'; opts.chart.foreColor = '#778da9'; opts.tooltip = { theme: 'dark' };
-            if(charts[id]) { charts[id].updateOptions(opts); } else { charts[id] = new ApexCharts(document.querySelector("#"+id), opts); charts[id].render(); }
+            if(charts[id]) charts[id].updateOptions(opts);
+            else { charts[id] = new ApexCharts(document.querySelector("#"+id), opts); charts[id].render(); }
         }
     </script>
 </body>
