@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk | Grupo Conexão Grafana</title>
+    <title>BI Helpdesk | Grupo Conexão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -20,7 +20,6 @@
             --green: #56a64b;
             --red: #e02f44;
             --orange: #f29527;
-            --purple: #8e44ad;
         }
         body { background-color: var(--bg-body); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         .grafana-panel { background-color: var(--bg-panel); border: 1px solid var(--border-panel); border-radius: 2px; display: flex; flex-direction: column; overflow: hidden; }
@@ -128,8 +127,11 @@
         function apply() {
             const fs = document.getElementById('f-sector').value;
             const fst = document.getElementById('f-status').value;
-            const dStart = document.getElementById('f-start').value ? new Date(document.getElementById('f-start').value + "T00:00:00") : null;
-            const dEnd = document.getElementById('f-end').value ? new Date(document.getElementById('f-end').value + "T23:59:59") : null;
+            const dStartInput = document.getElementById('f-start').value;
+            const dEndInput = document.getElementById('f-end').value;
+
+            const dStart = dStartInput ? new Date(dStartInput + "T00:00:00") : null;
+            const dEnd = dEndInput ? new Date(dEndInput + "T23:59:59") : null;
 
             const filtered = raw.filter(d => {
                 const p = parseDate(d[COL.CREATED]);
@@ -154,11 +156,16 @@
             const prg = total - (fin + can + opn);
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
-            // KPIs de Prioridade
-            document.getElementById('prio-critica').innerText = data.filter(d => d[COL.PRIO] === "Crítica").length;
-            document.getElementById('prio-alta').innerText = data.filter(d => d[COL.PRIO] === "Alta").length;
+            // KPIs de Prioridade Corrigidos
+            // Mapeamento: 
+            // Crítica: Crítico, Muito alto
+            // Alta: Alto
+            // Média: Médio
+            // Baixa: Baixo, Muito baixo
+            document.getElementById('prio-critica').innerText = data.filter(d => d[COL.PRIO] === "Crítico" || d[COL.PRIO] === "Muito alto").length;
+            document.getElementById('prio-alta').innerText = data.filter(d => d[COL.PRIO] === "Alto").length;
             document.getElementById('prio-media').innerText = data.filter(d => d[COL.PRIO] === "Médio").length;
-            document.getElementById('prio-baixa').innerText = data.filter(d => d[COL.PRIO] === "Baixo").length;
+            document.getElementById('prio-baixa').innerText = data.filter(d => d[COL.PRIO] === "Baixo" || d[COL.PRIO] === "Muito baixo").length;
 
             document.getElementById('kpi-total').innerText = total;
             document.getElementById('kpi-open').innerText = opn;
@@ -167,7 +174,7 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução
+            // Evolução Dinâmica
             let evMap = {};
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) evMap[p.key] = (evMap[p.key] || 0) + 1; });
             const evSorted = Object.keys(evMap).sort((a,b) => {
@@ -176,7 +183,7 @@
             });
             
             draw('chart-ev', {
-                series: [{ name: 'Tickets', data: evSorted.map(k => evMap[k]) }],
+                series: [{ name: 'Abertos', data: evSorted.map(k => evMap[k]) }],
                 chart: { type: 'area', height: 280, toolbar: {show:false} },
                 stroke: { curve: 'smooth', width: 2 },
                 fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } },
