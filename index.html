@@ -27,10 +27,9 @@
         .panel-header::before { content: ""; width: 2px; height: 12px; background: var(--blue); }
         .panel-content { padding: 12px; flex-grow: 1; }
         .stat-panel { border-left: 4px solid var(--blue); }
-        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 26px; font-weight: 700; color: #fff; }
-        .stat-label { font-size: 9px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 24px; font-weight: 700; color: #fff; }
+        .stat-label { font-size: 9px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
         header { background: #0d1b2a; border-bottom: 1px solid var(--border-panel); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-panel); }
@@ -44,7 +43,7 @@
                 <div class="bg-white p-1 rounded-sm"><img src="logo.png" style="height:30px;" onerror="this.src='https://via.placeholder.com/100x30/FFFFFF/0d1b2a?text=LOGOMARCA'"></div>
                 <div class="text-[14px] font-bold tracking-tight">TI GRUPO CONEXÃO / <span class="text-[#778da9]">HELPDESK BI</span></div>
             </div>
-            <div class="text-[10px] font-mono text-right flex flex-col">
+            <div id="last-update" class="text-[10px] font-mono text-right flex flex-col">
                 <span class="text-[#778da9]">SINCRONIZAÇÃO DE DADOS</span>
                 <span id="sync-time" class="text-white font-bold">---</span>
             </div>
@@ -66,9 +65,9 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
-            <div class="grafana-panel stat-panel"><div class="panel-content"><div class="stat-label">Total</div><div id="kpi-total" class="stat-value">0</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#e0e1dd]"><div class="panel-content"><div class="stat-label">Em Aberto</div><div id="kpi-open" class="stat-value text-[#e0e1dd]">0</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#778da9]"><div class="panel-content"><div class="stat-label">Em Andamento</div><div id="kpi-progress" class="stat-value text-[#778da9]">0</div></div></div>
+            <div class="grafana-panel stat-panel"><div class="panel-content"><div class="stat-label">Total Geral</div><div id="kpi-total" class="stat-value">0</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Em Aberto (Cinza)</div><div id="kpi-open" class="stat-value text-[#7b7b7b]">0</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Em Andamento (Azul)</div><div id="kpi-progress" class="stat-value text-[#3274d9]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content"><div class="stat-label">Finalizados</div><div id="kpi-resolved" class="stat-value text-[#56a64b]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content"><div class="stat-label">Cancelados</div><div id="kpi-canceled" class="stat-value text-[#e02f44]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Eficiência</div><div id="kpi-rate" class="stat-value text-[#f29527]">0%</div></div></div>
@@ -82,7 +81,7 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
-            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal (Tickets Criados)</div><div class="panel-content"><div id="chart-ev"></div></div></div>
+            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal</div><div class="panel-content"><div id="chart-ev"></div></div></div>
             <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição por Status</div><div class="panel-content"><div id="chart-prio"></div></div></div>
         </div>
 
@@ -130,7 +129,6 @@
             const fst = document.getElementById('f-status').value;
             const dStartInput = document.getElementById('f-start').value;
             const dEndInput = document.getElementById('f-end').value;
-
             const dStart = dStartInput ? new Date(dStartInput + "T00:00:00") : null;
             const dEnd = dEndInput ? new Date(dEndInput + "T23:59:59") : null;
 
@@ -147,21 +145,18 @@
         function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value=''; document.getElementById('f-end').value=''; apply(); }
 
         function render(data) {
+            // LÓGICA DE STATUS BASEADA NA IMAGEM
             const finS = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
-            const opnS = (s) => ["Pendente", "Aberto"].includes(s);
+            const canS = (s) => s === "Cancelado";
+            const opnS = (s) => s === "Aberto"; // APENAS "Aberto" é cinza
 
             const total = data.length;
             const fin = data.filter(d => finS(d[COL.STATUS])).length;
-            const can = data.filter(d => d[COL.STATUS] === "Cancelado").length;
+            const can = data.filter(d => canS(d[COL.STATUS])).length;
             const opn = data.filter(d => opnS(d[COL.STATUS])).length;
-            const prg = total - (fin + can + opn);
+            const prg = total - (fin + can + opn); // TODO O RESTANTE (Azul) é andamento
+            
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
-
-            // KPIs de Prioridade (Lógica Corrigida)
-            document.getElementById('prio-critica').innerText = data.filter(d => d[COL.PRIO].includes("Crítico") || d[COL.PRIO].includes("Muito alto")).length;
-            document.getElementById('prio-alta').innerText = data.filter(d => d[COL.PRIO] === "Alto").length;
-            document.getElementById('prio-media').innerText = data.filter(d => d[COL.PRIO] === "Médio").length;
-            document.getElementById('prio-baixa').innerText = data.filter(d => d[COL.PRIO] === "Baixo" || d[COL.PRIO] === "Muito baixo").length;
 
             document.getElementById('kpi-total').innerText = total;
             document.getElementById('kpi-open').innerText = opn;
@@ -170,7 +165,13 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Dinâmica (Inclui Abril automaticamente)
+            // Prioridades
+            document.getElementById('prio-critica').innerText = data.filter(d => d[COL.PRIO].includes("Cr") || d[COL.PRIO].includes("Muito alto")).length;
+            document.getElementById('prio-alta').innerText = data.filter(d => d[COL.PRIO] === "Alto").length;
+            document.getElementById('prio-media').innerText = data.filter(d => d[COL.PRIO].includes("M") && !d[COL.PRIO].includes("Muito")).length;
+            document.getElementById('prio-baixa').innerText = data.filter(d => d[COL.PRIO].includes("Baixo")).length;
+
+            // Evolução
             let evMap = {};
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) evMap[p.key] = (evMap[p.key] || 0) + 1; });
             const evSorted = Object.keys(evMap).sort((a,b) => {
@@ -179,7 +180,7 @@
             });
             
             draw('chart-ev', {
-                series: [{ name: 'Abertos', data: evSorted.map(k => evMap[k]) }],
+                series: [{ name: 'Tickets', data: evSorted.map(k => evMap[k]) }],
                 chart: { type: 'area', height: 280, toolbar: {show:false} },
                 stroke: { curve: 'smooth', width: 2 },
                 fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } },
@@ -193,7 +194,7 @@
                 labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], 
                 chart: { type: 'donut', height: 280 }, 
                 stroke: { show: false }, 
-                colors: ['#e0e1dd','#778da9','#56a64b','#e02f44'], 
+                colors: ['#7b7b7b','#3274d9','#56a64b','#e02f44'], 
                 legend: { position: 'bottom', labels: { colors: '#778da9' } } 
             });
 
