@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk | Grupo Conexão Grafana</title>
+    <title>BI Helpdesk | Grupo Conexão</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -27,17 +27,16 @@
         .panel-header::before { content: ""; width: 2px; height: 12px; background: var(--blue); }
         .panel-content { padding: 10px; flex-grow: 1; }
         .stat-panel { border-left: 3px solid var(--blue); }
-        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; line-height: 1.2; }
+        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; line-height: 1.1; }
+        .stat-percent { font-size: 10px; font-weight: 600; color: var(--text-dim); margin-top: 2px; font-family: 'Roboto Mono', monospace; }
         .stat-label { font-size: 8px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
         .section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
         .section-title::after { content: ""; flex-grow: 1; height: 1px; background: var(--border-panel); }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
         
-        /* Estilos da Tabela de Recentes */
         .recent-table { width: 100%; font-size: 11px; border-collapse: collapse; }
         .recent-table th { text-align: left; padding: 8px; color: var(--text-dim); text-transform: uppercase; border-bottom: 1px solid var(--border-panel); }
         .recent-table td { padding: 8px; border-bottom: 1px solid rgba(65, 90, 119, 0.3); color: var(--text-main); }
-        .recent-table tr:hover { background: rgba(255,255,255,0.03); }
         .badge { padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: bold; text-transform: uppercase; }
 
         header { background: #0d1b2a; border-bottom: 1px solid var(--border-panel); }
@@ -83,12 +82,36 @@
 
         <div class="section-title">Quantidade de Itens por prioridade</div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-            <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content"><div class="stat-label">Crítico</div><div id="p-critico" class="stat-value text-[#e02f44]">0</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content"><div class="stat-label">Muito Alto</div><div id="p-muito-alto" class="stat-value text-[#ff4d4d]">0</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Alto</div><div id="p-alto" class="stat-value text-[#f29527]">0</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Médio</div><div id="p-medio" class="stat-value text-[#3274d9]">0</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content"><div class="stat-label">Baixo</div><div id="p-baixo" class="stat-value text-[#56a64b]">0</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Muito Baixo</div><div id="p-muito-baixo" class="stat-value text-[#7b7b7b]">0</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content">
+                <div class="stat-label">Crítico</div>
+                <div id="p-critico" class="stat-value text-[#e02f44]">0</div>
+                <div id="perc-critico" class="stat-percent">0%</div>
+            </div></div>
+            <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content">
+                <div class="stat-label">Muito Alto</div>
+                <div id="p-muito-alto" class="stat-value text-[#ff4d4d]">0</div>
+                <div id="perc-muito-alto" class="stat-percent">0%</div>
+            </div></div>
+            <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content">
+                <div class="stat-label">Alto</div>
+                <div id="p-alto" class="stat-value text-[#f29527]">0</div>
+                <div id="perc-alto" class="stat-percent">0%</div>
+            </div></div>
+            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content">
+                <div class="stat-label">Médio</div>
+                <div id="p-medio" class="stat-value text-[#3274d9]">0</div>
+                <div id="perc-medio" class="stat-percent">0%</div>
+            </div></div>
+            <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content">
+                <div class="stat-label">Baixo</div>
+                <div id="p-baixo" class="stat-value text-[#56a64b]">0</div>
+                <div id="perc-baixo" class="stat-percent">0%</div>
+            </div></div>
+            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content">
+                <div class="stat-label">Muito Baixo</div>
+                <div id="p-muito-baixo" class="stat-value text-[#7b7b7b]">0</div>
+                <div id="perc-muito-baixo" class="stat-percent">0%</div>
+            </div></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
@@ -96,24 +119,13 @@
             <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição por Status</div><div class="panel-content"><div id="chart-pie"></div></div></div>
         </div>
 
-        <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
-        <div class="grafana-panel mb-4"><div class="panel-header">Matriz: Solicitação por Setor</div><div class="panel-content overflow-x-auto"><div id="chart-matrix"></div></div></div>
-
+        <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores Solicitantes</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
         <div class="grafana-panel mb-4">
             <div class="panel-header">Chamados Mais Recentes (Últimos 10)</div>
             <div class="panel-content overflow-x-auto">
                 <table class="recent-table" id="table-recent">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Solicitação</th>
-                            <th>Setor</th>
-                            <th>Prioridade</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
+                    <thead><tr><th>Data</th><th>Solicitação</th><th>Setor</th><th>Prioridade</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>
@@ -192,14 +204,20 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Prioridades
-            const getP = (p) => data.filter(d => d[COL.PRIO] === p).length;
-            document.getElementById('p-critico').innerText = getP("Crítico");
-            document.getElementById('p-muito-alto').innerText = getP("Muito alto");
-            document.getElementById('p-alto').innerText = getP("Alto");
-            document.getElementById('p-medio').innerText = getP("Médio");
-            document.getElementById('p-baixo').innerText = getP("Baixo");
-            document.getElementById('p-muito-baixo').innerText = getP("Muito baixo");
+            // Prioridades com Percentual
+            const updatePrio = (id, label, pName) => {
+                const count = data.filter(d => d[COL.PRIO] === pName).length;
+                const perc = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                document.getElementById('p-' + id).innerText = count;
+                document.getElementById('perc-' + id).innerText = perc + '% do total';
+            };
+
+            updatePrio('critico', 'Crítico', 'Crítico');
+            updatePrio('muito-alto', 'Muito alto', 'Muito alto');
+            updatePrio('alto', 'Alto', 'Alto');
+            updatePrio('medio', 'Médio', 'Médio');
+            updatePrio('baixo', 'Baixo', 'Baixo');
+            updatePrio('muito-baixo', 'Muito baixo', 'Muito baixo');
 
             // Evolução
             let evMap = {};
@@ -236,24 +254,14 @@
             const tbody = document.querySelector("#table-recent tbody");
             tbody.innerHTML = recent.map(r => {
                 let pClass = r[COL.PRIO] === 'Crítico' ? 'bg-[#e02f44]' : (r[COL.PRIO] === 'Alto' ? 'bg-[#f29527]' : 'bg-[#415a77]');
-                let sClass = finS(r[COL.STATUS]) ? 'text-[#56a64b]' : (opnS(r[COL.STATUS]) ? 'text-[#7b7b7b]' : 'text-[#3274d9]');
                 return `<tr>
                     <td>${r[COL.CREATED].split(' ')[0]}</td>
                     <td class="font-bold">${r[COL.REQ]}</td>
                     <td>${r[COL.SECTOR]}</td>
                     <td><span class="badge ${pClass}">${r[COL.PRIO]}</span></td>
-                    <td class="${sClass} font-bold">${r[COL.STATUS]}</td>
+                    <td class="font-bold">${r[COL.STATUS]}</td>
                 </tr>`;
             }).join('');
-
-            const sLabels = count(data, COL.SECTOR, 8).l; 
-            const rLabels = count(data, COL.REQ, 10).l;
-            draw('chart-matrix', { 
-                series: rLabels.map(req => ({ name: req, data: sLabels.map(sec => ({ x: sec, y: data.filter(d => d[COL.REQ] === req && d[COL.SECTOR] === sec).length })) })), 
-                chart: { type: 'heatmap', height: 450 }, 
-                plotOptions: { heatmap: { colorScale: { ranges: [{ from: 0, to: 0, color: '#1b263b' }, { from: 1, to: 100, color: '#778da9' }] }, enableShades: false } },
-                dataLabels: { enabled: true } 
-            });
         }
 
         function count(data, f, l) {
