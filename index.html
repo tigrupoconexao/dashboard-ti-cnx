@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI Helpdesk | Grupo Conexão</title>
+    <title>BI Helpdesk | Grupo Conexão Grafana</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -30,7 +30,6 @@
         .stat-value { font-family: 'Roboto Mono', monospace; font-size: 26px; font-weight: 700; color: #fff; }
         .stat-label { font-size: 9px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); cursor: pointer; }
         header { background: #0d1b2a; border-bottom: 1px solid var(--border-panel); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--border-panel); }
@@ -56,16 +55,12 @@
         <div class="flex flex-wrap items-center gap-3 mb-6 bg-[#1b263b] p-3 border border-[#415a77]">
             <select id="f-sector" class="g-select" onchange="apply()"><option value="All">Setor: Todos</option></select>
             <select id="f-status" class="g-select" onchange="apply()"><option value="All">Status: Todos</option></select>
-            <select id="f-type" class="g-select" onchange="apply()"><option value="All">Tipo: Todos</option></select>
-            <select id="f-req" class="g-select" onchange="apply()"><option value="All">Solicitação: Todas</option></select>
-            
             <div class="flex items-center gap-2 ml-auto">
                 <label class="text-[10px] font-bold text-[#778da9] uppercase">Período:</label>
                 <input type="date" id="f-start" class="g-select" onchange="apply()">
                 <span class="text-[#778da9] text-[10px]">ATÉ</span>
                 <input type="date" id="f-end" class="g-select" onchange="apply()">
             </div>
-            
             <button onclick="reset()" class="g-select border-none bg-[#415a77] hover:bg-[#778da9] font-bold px-4 text-white uppercase transition-colors">Limpar</button>
         </div>
 
@@ -79,19 +74,8 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
-            <div class="grafana-panel lg:col-span-8">
-                <div class="panel-header">Evolução Mensal (Criados)</div>
-                <div class="panel-content"><div id="chart-ev"></div></div>
-            </div>
-            <div class="grafana-panel lg:col-span-4">
-                <div class="panel-header">Distribuição de Status</div>
-                <div class="panel-content"><div id="chart-prio"></div></div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            <div class="grafana-panel"><div class="panel-header">Concentração Semanal</div><div class="panel-content"><div id="chart-week"></div></div></div>
-            <div class="grafana-panel"><div class="panel-header">Heatmap Mensal</div><div class="panel-content"><div id="chart-month"></div></div></div>
+            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal</div><div class="panel-content"><div id="chart-ev"></div></div></div>
+            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição Backlog</div><div class="panel-content"><div id="chart-prio"></div></div></div>
         </div>
 
         <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores Solicitantes</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
@@ -100,8 +84,8 @@
 
     <script>
         let raw = []; let charts = {};
-        const COL = { STATUS: 'Status', CREATED: 'Criado', REQ: 'Campo personalizado (Request Type)', SECTOR: 'Campo personalizado (Setor Solicitante)', TYPE: 'Tipo de item' };
-        const heatmapColors = { ranges: [{ from: 0, to: 0, color: '#1b263b' }, { from: 1, to: 3, color: '#2c4a63' }, { from: 4, to: 7, color: '#415a77' }, { from: 8, to: 100, color: '#778da9' }] };
+        const COL = { STATUS: 'Status', CREATED: 'Criado', SECTOR: 'Campo personalizado (Setor Solicitante)', REQ: 'Campo personalizado (Request Type)' };
+        const heatmapColors = { ranges: [{ from: 0, to: 0, color: '#1b263b' }, { from: 1, to: 100, color: '#778da9' }] };
 
         function clean(s) { 
             if(!s) return "";
@@ -111,17 +95,10 @@
 
         function parseDate(s) {
             if(!s) return null;
-            let d, m, y, h;
-            if(s.includes('/')){ 
-                let parts = s.split(' ');
-                [d,m,y] = parts[0].split('/');
-                h = parts[1] ? parts[1].split(':')[0] : 0;
-            } else { 
-                let parts = s.split(' ');
-                [y,m,d] = parts[0].split('-');
-                h = parts[1] ? parts[1].split(':')[0] : 0;
-            }
-            return { d: parseInt(d), m: parseInt(m), y: parseInt(y), h: parseInt(h), key: `${m.toString().padStart(2,'0')}/${y.toString().slice(-2)}`, full: new Date(y, m-1, d) };
+            let d, m, y;
+            if(s.includes('/')){ [d,m,y] = s.split(' ')[0].split('/'); }
+            else { [y,m,d] = s.split(' ')[0].split('-'); }
+            return { d: parseInt(d), m: parseInt(m), y: parseInt(y), key: `${m.toString().padStart(2,'0')}/${y.toString().slice(-2)}`, full: new Date(y, m-1, d) };
         }
 
         window.onload = function() {
@@ -136,27 +113,20 @@
             const fill = (id, l, p) => { let s=document.getElementById(id); l.forEach(v => { let o=document.createElement('option'); o.value=v; o.text=`${p}: ${v}`; s.add(o); }); };
             fill('f-sector', getU(COL.SECTOR), "Setor");
             fill('f-status', getU(COL.STATUS), "Status");
-            fill('f-type', getU(COL.TYPE), "Tipo");
-            fill('f-req', getU(COL.REQ), "Solicit.");
-            document.getElementById('sync-time').innerText = moment().format('DD/MM/YYYY [às] HH:mm:ss');
+            document.getElementById('sync-time').innerText = moment().format('DD/MM/YYYY HH:mm:ss');
             apply();
         }
 
         function apply() {
             const fs = document.getElementById('f-sector').value;
             const fst = document.getElementById('f-status').value;
-            const ft = document.getElementById('f-type').value;
-            const fr = document.getElementById('f-req').value;
-            const dStartInput = document.getElementById('f-start').value;
-            const dEndInput = document.getElementById('f-end').value;
-
-            const dStart = dStartInput ? new Date(dStartInput + "T00:00:00") : null;
-            const dEnd = dEndInput ? new Date(dEndInput + "T23:59:59") : null;
+            const dStart = document.getElementById('f-start').value ? new Date(document.getElementById('f-start').value + "T00:00:00") : null;
+            const dEnd = document.getElementById('f-end').value ? new Date(document.getElementById('f-end').value + "T23:59:59") : null;
 
             const filtered = raw.filter(d => {
                 const p = parseDate(d[COL.CREATED]);
                 if(!p) return false;
-                const matchS = (fs==='All'||d[COL.SECTOR]===fs)&&(fst==='All'||d[COL.STATUS]===fst)&&(ft==='All'||d[COL.TYPE]===ft)&&(fr==='All'||d[COL.REQ]===fr);
+                const matchS = (fs==='All'||d[COL.SECTOR]===fs)&&(fst==='All'||d[COL.STATUS]===fst);
                 const matchD = (!dStart || p.full >= dStart) && (!dEnd || p.full <= dEnd);
                 return matchS && matchD;
             });
@@ -166,16 +136,16 @@
         function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value=''; document.getElementById('f-end').value=''; apply(); }
 
         function render(data) {
-            // Lógica de Status Corrigida
-            const finS = ["Resolvido", "Concluído", "Concluido"];
-            const cancelS = ["Cancelado"];
-            const openS = ["Pendente", "Aberto"]; // Apenas status de entrada literal
+            // Lógica rigorosa de Status
+            const finS = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
+            const canS = (s) => s === "Cancelado";
+            const opnS = (s) => ["Pendente", "Aberto"].includes(s);
 
             const total = data.length;
-            const fin = data.filter(d => finS.includes(d[COL.STATUS])).length;
-            const can = data.filter(d => cancelS.includes(d[COL.STATUS])).length;
-            const opn = data.filter(d => openS.includes(d[COL.STATUS])).length;
-            const prg = total - (fin + can + opn); // O restante é considerado "Em Andamento"
+            const fin = data.filter(d => finS(d[COL.STATUS])).length;
+            const can = data.filter(d => canS(d[COL.STATUS])).length;
+            const opn = data.filter(d => opnS(d[COL.STATUS])).length;
+            const prg = total - (fin + can + opn); // Itens como "Aguardando Aquisição" caem aqui
             
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
@@ -186,7 +156,7 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = rate + "%";
 
-            // Evolução Dinâmica
+            // Evolução
             let evMap = {};
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) evMap[p.key] = (evMap[p.key] || 0) + 1; });
             const evSorted = Object.keys(evMap).sort((a,b) => {
@@ -195,7 +165,7 @@
             });
             
             draw('chart-ev', {
-                series: [{ name: 'Abertos', data: evSorted.map(k => evMap[k]) }],
+                series: [{ name: 'Tickets', data: evSorted.map(k => evMap[k]) }],
                 chart: { type: 'area', height: 280, toolbar: {show:false} },
                 stroke: { curve: 'smooth', width: 2 },
                 fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.1 } },
@@ -204,39 +174,33 @@
                 grid: { borderColor: '#1b263b', strokeDashArray: 4 }
             });
 
-            draw('chart-prio', { series: [opn, prg, fin, can], labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], chart: { type: 'donut', height: 280 }, stroke: { show: false }, colors: ['#e0e1dd','#778da9','#56a64b','#e02f44'], legend: { position: 'bottom', labels: { colors: '#778da9' } } });
-            
-            const sct = count(data, COL.SECTOR, 10);
-            draw('chart-sectors', { series:[{name:'Chamados', data:sct.v}], chart:{type:'bar', height:350, toolbar:{show:false}}, colors:['#56a64b'], plotOptions:{bar:{horizontal:true, borderRadius:2}}, xaxis:{categories:sct.l}, grid:{borderColor:'#1b263b'} });
+            draw('chart-prio', { 
+                series: [opn, prg, fin, can], 
+                labels: ["Aberto", "Em Andamento", "Finalizado", "Cancelado"], 
+                chart: { type: 'donut', height: 280 }, 
+                stroke: { show: false }, 
+                colors: ['#e0e1dd','#778da9','#56a64b','#e02f44'], 
+                legend: { position: 'bottom', labels: { colors: '#778da9' } } 
+            });
 
-            renderHeatmaps(data);
+            const sct = count(data, COL.SECTOR, 10);
+            draw('chart-sectors', { series:[{name:'Total', data:sct.v}], chart:{type:'bar', height:350, toolbar:{show:false}}, colors:['#56a64b'], plotOptions:{bar:{horizontal:true, borderRadius:2}}, xaxis:{categories:sct.l}, grid:{borderColor:'#1b263b'} });
+
+            // Matriz
+            const sLabels = count(data, COL.SECTOR, 8).l; 
+            const rLabels = count(data, COL.REQ, 10).l;
+            draw('chart-matrix', { 
+                series: rLabels.map(req => ({ name: req, data: sLabels.map(sec => ({ x: sec, y: data.filter(d => d[COL.REQ] === req && d[COL.SECTOR] === sec).length })) })), 
+                chart: { type: 'heatmap', height: 450 }, 
+                plotOptions: { heatmap: { colorScale: heatmapColors, enableShades: false } },
+                dataLabels: { enabled: true } 
+            });
         }
 
         function count(data, f, l) {
             let c = {}; data.forEach(d => { let v=d[f]||"N/A"; c[v]=(c[v]||0)+1; });
             let e = Object.entries(c).sort((a,b)=>b[1]-a[1]); if(l) e=e.slice(0,l);
             return { l:e.map(i=>i[0]), v:e.map(i=>i[1]) };
-        }
-
-        function renderHeatmaps(data) {
-            let wk = ["Seg","Ter","Qua","Qui","Sex","Sab","Dom"].map(d=>({name:d, data:Array(24).fill(0).map((_,i)=>({x:i+'h', y:0}))}));
-            data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) { let dObj=new Date(p.y,p.m-1,p.d); let idx=(dObj.getDay()+6)%7; if(wk[idx]) wk[idx].data[p.h].y++; } });
-            draw('chart-week', { series:wk.reverse(), chart:{type:'heatmap', height:250}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:false} });
-
-            let mthNames = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-            let activeMonths = [...new Set(data.map(d => parseDate(d[COL.CREATED]).m))].sort((a,b) => a-b);
-            let mthSeries = activeMonths.map(m => ({ name: mthNames[m-1], data: Array(31).fill(0).map((_,i)=>({x:(i+1).toString(), y:0})) }));
-            data.forEach(d => { 
-                let p=parseDate(d[COL.CREATED]); 
-                if(p){
-                    let mIdx = activeMonths.indexOf(p.m);
-                    if(mIdx !== -1) mthSeries[mIdx].data[p.d-1].y++;
-                }
-            });
-            draw('chart-month', { series:mthSeries.reverse(), chart:{type:'heatmap', height:250}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:false} });
-
-            const s = count(data, COL.SECTOR, 8).l; const r = count(data, COL.REQ, 10).l;
-            draw('chart-matrix', { series:r.map(req=>({name:req, data:s.map(sec=>({x:sec, y:data.filter(d=>d[COL.REQ]===req && d[COL.SECTOR]===sec).length}))})), chart:{type:'heatmap', height:450}, plotOptions:{heatmap:{colorScale:heatmapColors, enableShades: false}}, dataLabels:{enabled:true} });
         }
 
         function draw(id, opts) {
