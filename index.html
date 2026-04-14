@@ -27,9 +27,8 @@
         .panel-header::before { content: ""; width: 2px; height: 12px; background: var(--blue); }
         .panel-content { padding: 10px; flex-grow: 1; }
         .stat-panel { border-left: 3px solid var(--blue); }
-        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; line-height: 1.1; }
+        .stat-value { font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; line-height: 1.2; }
         .stat-label { font-size: 8px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-        .stat-sub { font-size: 9px; color: var(--text-dim); font-family: 'Roboto Mono', monospace; margin-top: 2px; opacity: 0.8; }
         .section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 12px 0; display: flex; align-items: center; gap: 10px; }
         .section-title::after { content: ""; flex-grow: 1; height: 1px; background: var(--border-panel); }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
@@ -80,12 +79,12 @@
 
         <div class="section-title">Quantidade de Itens por prioridade</div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-            <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content"><div class="stat-label">Crítico</div><div id="p-critico" class="stat-value text-[#e02f44]">0</div><div id="mttr-critico" class="stat-sub">MTTR: --</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content"><div class="stat-label">Muito Alto</div><div id="p-muito-alto" class="stat-value text-[#ff4d4d]">0</div><div id="mttr-muito-alto" class="stat-sub">MTTR: --</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Alto</div><div id="p-alto" class="stat-value text-[#f29527]">0</div><div id="mttr-alto" class="stat-sub">MTTR: --</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Médio</div><div id="p-medio" class="stat-value text-[#3274d9]">0</div><div id="mttr-medio" class="stat-sub">MTTR: --</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content"><div class="stat-label">Baixo</div><div id="p-baixo" class="stat-value text-[#56a64b]">0</div><div id="mttr-baixo" class="stat-sub">MTTR: --</div></div></div>
-            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Muito Baixo</div><div id="p-muito-baixo" class="stat-value text-[#7b7b7b]">0</div><div id="mttr-muito-baixo" class="stat-sub">MTTR: --</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content"><div class="stat-label">Crítico</div><div id="p-critico" class="stat-value text-[#e02f44]">0</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content"><div class="stat-label">Muito Alto</div><div id="p-muito-alto" class="stat-value text-[#ff4d4d]">0</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Alto</div><div id="p-alto" class="stat-value text-[#f29527]">0</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Médio</div><div id="p-medio" class="stat-value text-[#3274d9]">0</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#56a64b]"><div class="panel-content"><div class="stat-label">Baixo</div><div id="p-baixo" class="stat-value text-[#56a64b]">0</div></div></div>
+            <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Muito Baixo</div><div id="p-muito-baixo" class="stat-value text-[#7b7b7b]">0</div></div></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
@@ -107,7 +106,7 @@
 
     <script>
         let raw = []; let charts = {};
-        const COL = { STATUS: 'Status', PRIO: 'Prioridade', CREATED: 'Criado', UPDATED: 'Atualizado(a)', RESOLVED: 'Resolvido(a)', SECTOR: 'Campo personalizado (Setor Solicitante)', REQ: 'Campo personalizado (Request Type)' };
+        const COL = { STATUS: 'Status', PRIO: 'Prioridade', CREATED: 'Criado', UPDATED: 'Atualizado(a)', SECTOR: 'Campo personalizado (Setor Solicitante)', REQ: 'Campo personalizado (Request Type)' };
         
         function clean(s) { 
             if(!s) return "";
@@ -117,17 +116,10 @@
 
         function parseFullDate(s) {
             if(!s) return null;
-            let d, m, y, h, min;
-            if(s.includes('/')){ 
-                let parts = s.split(' ');
-                [d,m,y] = parts[0].split('/');
-                [h, min] = parts[1] ? parts[1].split(':') : [0,0];
-            } else { 
-                let parts = s.split(' ');
-                [y,m,d] = parts[0].split('-');
-                [h, min] = parts[1] ? parts[1].split(':') : [0,0];
-            }
-            return new Date(y, m-1, d, h, min);
+            let d, m, y;
+            if(s.includes('/')){ [d,m,y] = s.split(' ')[0].split('/'); }
+            else { [y,m,d] = s.split(' ')[0].split('-'); }
+            return new Date(y, m-1, d);
         }
 
         window.onload = function() {
@@ -166,14 +158,6 @@
 
         function reset() { document.querySelectorAll('.g-select').forEach(s => s.value='All'); document.getElementById('f-start').value=''; document.getElementById('f-end').value=''; apply(); }
 
-        function formatDuration(ms) {
-            if(isNaN(ms) || ms <= 0) return "--";
-            let totalHrs = Math.floor(ms / (1000 * 60 * 60));
-            let days = Math.floor(totalHrs / 24);
-            let hrs = totalHrs % 24;
-            return days > 0 ? `${days}d ${hrs}h` : `${hrs}h`;
-        }
-
         function render(data) {
             const finS = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
             const total = data.length;
@@ -189,24 +173,13 @@
             document.getElementById('kpi-canceled').innerText = can;
             document.getElementById('kpi-rate').innerText = (total-can) > 0 ? ((finList.length/(total-can))*100).toFixed(1)+"%" : "0%";
 
-            // KPIs Prioridade & MTTR
+            // KPIs Prioridade
             const prios = ["Crítico", "Muito alto", "Alto", "Médio", "Baixo", "Muito baixo"];
             const ids = ["critico", "muito-alto", "alto", "medio", "baixo", "muito-baixo"];
 
             prios.forEach((p, idx) => {
-                const pItems = data.filter(d => d[COL.PRIO] === p);
-                const pFin = pItems.filter(d => finS(d[COL.STATUS]));
-                
-                let totalTime = 0;
-                let count = 0;
-                pFin.forEach(item => {
-                    const start = parseFullDate(item[COL.CREATED]);
-                    const end = parseFullDate(item[COL.RESOLVED] || item[COL.UPDATED]);
-                    if(start && end && end > start) { totalTime += (end - start); count++; }
-                });
-
-                document.getElementById('p-' + ids[idx]).innerText = pItems.length;
-                document.getElementById('mttr-' + ids[idx]).innerText = "MTTR: " + formatDuration(count > 0 ? totalTime / count : 0);
+                const count = data.filter(d => d[COL.PRIO] === p).length;
+                document.getElementById('p-' + ids[idx]).innerText = count;
             });
 
             // Gráficos
