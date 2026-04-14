@@ -30,6 +30,8 @@
         .stat-panel { border-left: 3px solid var(--blue); }
         .stat-value { font-family: 'Roboto Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; line-height: 1.2; }
         .stat-label { font-size: 8px; color: var(--text-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+        .section-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .section-title::after { content: ""; flex-grow: 1; height: 1px; background: var(--border-panel); }
         .g-select { background: #1b263b; border: 1px solid var(--border-panel); color: var(--text-main); font-size: 11px; padding: 5px 10px; border-radius: 2px; outline: none; }
         header { background: #0d1b2a; border-bottom: 1px solid var(--border-panel); }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -62,7 +64,7 @@
             <button onclick="reset()" class="g-select border-none bg-[#415a77] hover:bg-[#778da9] font-bold px-4 text-white uppercase transition-colors">Limpar</button>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
             <div class="grafana-panel stat-panel !border-l-white"><div class="panel-content"><div class="stat-label">Total</div><div id="kpi-total" class="stat-value">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#7b7b7b]"><div class="panel-content"><div class="stat-label">Em Aberto</div><div id="kpi-open" class="stat-value text-[#7b7b7b]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#3274d9]"><div class="panel-content"><div class="stat-label">Em Andamento</div><div id="kpi-progress" class="stat-value text-[#3274d9]">0</div></div></div>
@@ -71,7 +73,9 @@
             <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Eficiência</div><div id="kpi-rate" class="stat-value text-[#f29527]">0%</div></div></div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+        <div class="section-title">Quantidade de Itens por prioridade</div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
             <div class="grafana-panel stat-panel !border-l-[#e02f44]"><div class="panel-content"><div class="stat-label">Crítico</div><div id="p-critico" class="stat-value text-[#e02f44]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#ff4d4d]"><div class="panel-content"><div class="stat-label">Muito Alto</div><div id="p-muito-alto" class="stat-value text-[#ff4d4d]">0</div></div></div>
             <div class="grafana-panel stat-panel !border-l-[#f29527]"><div class="panel-content"><div class="stat-label">Alto</div><div id="p-alto" class="stat-value text-[#f29527]">0</div></div></div>
@@ -81,8 +85,8 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
-            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal (Total Acumulado)</div><div class="panel-content"><div id="chart-ev"></div></div></div>
-            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição de Backlog</div><div class="panel-content"><div id="chart-pie"></div></div></div>
+            <div class="grafana-panel lg:col-span-8"><div class="panel-header">Evolução Mensal</div><div class="panel-content"><div id="chart-ev"></div></div></div>
+            <div class="grafana-panel lg:col-span-4"><div class="panel-header">Distribuição por Status</div><div class="panel-content"><div id="chart-pie"></div></div></div>
         </div>
 
         <div class="grafana-panel mb-4"><div class="panel-header">Top 10 Setores Solicitantes</div><div class="panel-content"><div id="chart-sectors"></div></div></div>
@@ -146,14 +150,13 @@
         function render(data) {
             const finS = (s) => ["Resolvido", "Concluído", "Concluido"].includes(s);
             const canS = (s) => s === "Cancelado";
-            const opnS = (s) => s === "Aberto"; // Agora só conta se for exatamente "Aberto"
+            const opnS = (s) => s === "Aberto"; 
 
             const total = data.length;
             const fin = data.filter(d => finS(d[COL.STATUS])).length;
             const can = data.filter(d => canS(d[COL.STATUS])).length;
             const opn = data.filter(d => opnS(d[COL.STATUS])).length;
-            const prg = total - (fin + can + opn); // Todo o resto (azul) vai para Andamento
-            
+            const prg = total - (fin + can + opn);
             const rate = (total - can) > 0 ? ((fin / (total - can)) * 100).toFixed(1) : 0;
 
             document.getElementById('kpi-total').innerText = total;
@@ -172,7 +175,6 @@
             document.getElementById('p-baixo').innerText = getP("Baixo");
             document.getElementById('p-muito-baixo').innerText = getP("Muito baixo");
 
-            // Evolução Dinâmica
             let evMap = {};
             data.forEach(d => { let p=parseDate(d[COL.CREATED]); if(p) evMap[p.key] = (evMap[p.key] || 0) + 1; });
             const evSorted = Object.keys(evMap).sort((a,b) => {
